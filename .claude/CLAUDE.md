@@ -18,3 +18,23 @@ generate and test examples.
 The design is available in Claude Designer. That should be contacted to get design guidelines, artwork
 and other materials.
 
+## Local build / preview
+
+The rbenv default Ruby (2.7.1) on this machine is dead — it's EOL and linked against OpenSSL 1.1 and
+libffi 6, both removed in Debian 13, so `gem`/`jekyll` fail under it. Do **not** try to repair 2.7.1.
+
+Build and preview with the healthy **system Ruby 3.3** (`/usr/bin/ruby3.3`, OpenSSL 3 + libffi 8).
+Jekyll 4.x lives in an isolated gem dir at `~/.local/share/gem-eliot`:
+
+```sh
+GD=$HOME/.local/share/gem-eliot
+# one-time: GEM_HOME=$GD /usr/bin/gem3.3 install jekyll webrick
+env GEM_HOME="$GD" JEKYLL_NO_BUNDLER_REQUIRE=1 /usr/bin/ruby3.3 "$GD/bin/jekyll" \
+  serve --host 127.0.0.1 --port 4000        # → http://127.0.0.1:4000 ; stop: fuser -k 4000/tcp
+```
+
+`JEKYLL_NO_BUNDLER_REQUIRE=1` (correct env var for Jekyll 4.4) skips Bundler so it ignores the
+`github-pages` Gemfile locally; set only `GEM_HOME` (not `GEM_PATH`, which would hide Ruby's default
+gems). GitHub Pages builds the site remotely regardless. All code samples on the site must be real,
+compiling Eliot from `../eliot/examples/src/*.els` — not invented syntax.
+
