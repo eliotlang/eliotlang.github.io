@@ -301,6 +301,7 @@ section.block { padding-bottom: var(--space-9); scroll-margin-top: 80px; }
 .types__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .types__list li { display: flex; align-items: baseline; gap: var(--space-3); font-family: var(--font-body); font-size: var(--text-sm); color: var(--text); }
 .types__list .pill { flex: none; }
+.types__more { margin-top: var(--space-6); }
 .types__art { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
 
 /* Build / install */
