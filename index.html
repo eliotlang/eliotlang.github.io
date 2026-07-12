@@ -1,0 +1,281 @@
+---
+layout: default
+title: Eliot
+description: >-
+  Eliot is the Embedded Language for the Internet of Things — a type system that
+  makes correct, minimal embedded programs feel simple, even on a microcontroller
+  with 32 bytes of RAM.
+---
+
+<!-- ================= Hero ================= -->
+<section class="hero wrap">
+  <div class="hero__copy">
+    <p class="eyebrow">Embedded Language for the Internet of Things</p>
+    <h1 class="hero__title">Correct programs,<br />down to the last byte<span class="eliot-cursor" aria-hidden="true"></span></h1>
+    <p class="hero__lead">
+      A type system that makes correct, minimal embedded programs feel simple — even on a
+      microcontroller with 32&nbsp;bytes of RAM. The proofs live in the compiler, not in
+      boilerplate you write.
+    </p>
+    <div class="hero__cta">
+      <a class="btn btn--primary btn--lg" href="#examples">
+        See the examples
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a class="btn btn--secondary btn--lg" href="{{ site.github_repo }}" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.76.4-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.28 5.69.42.36.79 1.06.79 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+    <div class="hero__pills" aria-label="A taste of the vocabulary">
+      <span class="pill">{Console}</span>
+      <span class="pill">{Throw[E]}</span>
+      <span class="pill">{State[S]}</span>
+      <span class="pill">where …</span>
+    </div>
+  </div>
+
+  <div class="hero__art">
+    <div class="code" data-code>
+      <div class="code__bar">
+        <span class="code__dot" aria-hidden="true"></span>
+        <span class="code__file">WherePrecondition.els</span>
+        <button class="code__copy" type="button" data-copy>copy</button>
+      </div>
+<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
+
+<span class="t-com">// `where` proves x's range fits a byte —</span>
+<span class="t-com">// the compiler checks it at every call site.</span>
+<span class="t-kw">def</span> asByte(x: <span class="t-ty">Int</span>): <span class="t-ty">Int</span> <span class="t-kw">where</span> withinByte(range(x)) = x
+
+<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] =
+  printLine(intToString(asByte(<span class="t-num">100</span>)))
+</code></pre>
+    </div>
+    <div class="term">
+      <div class="term__line"><span class="prompt">$ </span>./mill examples.run jvm exe-jar \</div>
+      <div class="term__line">    examples/src/ -m WherePrecondition</div>
+      <div class="term__line"><span class="prompt">$ </span>java -jar target/WherePrecondition.jar</div>
+      <div class="term__line is-out">100<span class="term__cursor" aria-hidden="true"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Pillars ================= -->
+<section class="pillars wrap" id="language" aria-label="Why Eliot">
+  <article class="card">
+    <span class="card__eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+      Small by construction
+    </span>
+    <h3 class="card__title">Emit only what you use</h3>
+    <p class="card__body">Generics and abilities resolve by monomorphization and dead-code elimination, so the compiler emits exactly the machinery your program needs — nothing general-purpose you didn't ask for.</p>
+  </article>
+
+  <article class="card">
+    <span class="card__eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+      Bounded &amp; provable
+    </span>
+    <h3 class="card__title">Known before it runs</h3>
+    <p class="card__body">A value's range lives in the compiler's refinement channel. A <code>where</code> precondition proves it fits — checked at every call site, with zero runtime cost.</p>
+  </article>
+
+  <article class="card">
+    <span class="card__eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg>
+      Effects in the type system
+    </span>
+    <h3 class="card__title">Say what a function may do</h3>
+    <p class="card__body">Effects are an unordered set in the signature — <code>{Console, State, Throw[E]}</code>. A function may perform only the effects it declares, and the compiler enforces it.</p>
+  </article>
+
+  <article class="card">
+    <span class="card__eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/></svg>
+      Simple to write
+    </span>
+    <h3 class="card__title">Direct style, no plumbing</h3>
+    <p class="card__body">Effectful steps sequence for you — no hand-written <code>flatMap</code>, monad transformers, or lifts. It reads like an ordinary modern language.</p>
+  </article>
+</section>
+
+<!-- ================= Showcase / examples ================= -->
+<section class="block wrap" id="examples">
+  <div class="section-head">
+    <p class="eyebrow">Real code, checked at compile time</p>
+    <h2>The type system does the worrying</h2>
+    <p>Every sample below is a real Eliot program from the compiler's example suite. Switch between them.</p>
+  </div>
+
+  <div class="showcase__tabs" role="tablist" aria-label="Examples">
+    <button class="tab" role="tab" id="tab-effects" aria-controls="panel-effects" aria-selected="true" data-tab="effects">Effects, direct style</button>
+    <button class="tab" role="tab" id="tab-data" aria-controls="panel-data" aria-selected="false" data-tab="data">Data &amp; matching</button>
+    <button class="tab" role="tab" id="tab-ints" aria-controls="panel-ints" aria-selected="false" data-tab="ints">Ranged integers</button>
+  </div>
+
+  <!-- Effects -->
+  <div class="showcase__body panel" id="panel-effects" role="tabpanel" aria-labelledby="tab-effects" data-panel="effects">
+    <div class="code" data-code>
+      <div class="code__bar">
+        <span class="code__dot" aria-hidden="true"></span>
+        <span class="code__file">EffectsThrow.els</span>
+        <button class="code__copy" type="button" data-copy>copy</button>
+      </div>
+<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Throw</span>
+
+<span class="t-com">// A parser that fails with a typed error on bad input.</span>
+<span class="t-kw">def</span> parseOk:  {<span class="t-ty">Throw</span>[<span class="t-ty">String</span>]} <span class="t-ty">String</span> = <span class="t-str">"parsed-value"</span>
+<span class="t-kw">def</span> parseBad: {<span class="t-ty">Throw</span>[<span class="t-ty">String</span>]} <span class="t-ty">String</span> = raise(<span class="t-str">"malformed input"</span>)
+
+<span class="t-com">// `catch` discharges {Throw[String]} in one step —</span>
+<span class="t-com">// no Either, no transformer, no ThrowCarrier in sight.</span>
+<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] = {
+  printLine(parseOk  <span class="t-kw">catch</span> (err -&gt; err))
+  printLine(parseBad <span class="t-kw">catch</span> (err -&gt; err))
+}
+</code></pre>
+    </div>
+    <div class="showcase__note">
+      <span class="badge badge--pass"><span class="badge__dot"></span>statically checked</span>
+      <p><code>raise</code> and <code>catch</code> arrive from a single import. <code>catch</code> recovers a typed failure to a value of the same type, and once discharged the effect leaves the signature — the residual carrier becomes plain <code>IO</code>.</p>
+    </div>
+  </div>
+
+  <!-- Data & matching -->
+  <div class="showcase__body panel" id="panel-data" role="tabpanel" aria-labelledby="tab-data" data-panel="data" hidden>
+    <div class="code" data-code>
+      <div class="code__bar">
+        <span class="code__dot" aria-hidden="true"></span>
+        <span class="code__file">Match.els</span>
+        <button class="code__copy" type="button" data-copy>copy</button>
+      </div>
+<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
+
+<span class="t-kw">data</span> <span class="t-ty">Maybe</span>[A] = <span class="t-ty">Nothing</span> | <span class="t-ty">Just</span>(value: A)
+
+<span class="t-kw">def</span> describe(m: <span class="t-ty">Maybe</span>[<span class="t-ty">String</span>]): <span class="t-ty">String</span> = m <span class="t-kw">match</span> {
+  <span class="t-kw">case</span> <span class="t-ty">Nothing</span> -&gt; <span class="t-str">"empty"</span>
+  <span class="t-kw">case</span> <span class="t-ty">Just</span>(v) -&gt; v
+}
+
+<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] = printLine(describe(<span class="t-ty">Just</span>(<span class="t-str">"hello"</span>)))
+</code></pre>
+    </div>
+    <div class="showcase__note">
+      <span class="badge badge--pass"><span class="badge__dot"></span>exhaustive</span>
+      <p>Sum types are declared with <code>data</code> and taken apart with <code>match</code>. Constructors carry named fields, and the compiler checks that every case is handled.</p>
+    </div>
+  </div>
+
+  <!-- Ranged integers -->
+  <div class="showcase__body panel" id="panel-ints" role="tabpanel" aria-labelledby="tab-ints" data-panel="ints" hidden>
+    <div class="code" data-code>
+      <div class="code__bar">
+        <span class="code__dot" aria-hidden="true"></span>
+        <span class="code__file">Ranges.els</span>
+        <button class="code__copy" type="button" data-copy>copy</button>
+      </div>
+<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
+<span class="t-kw">import</span> eliot.lang.<span class="t-ty">Numeric</span>
+
+<span class="t-com">// One integer type. A value's range is meta-information</span>
+<span class="t-com">// in the compiler, not a separate Int8 / Int16 / ...</span>
+<span class="t-kw">def</span> count: <span class="t-ty">UnsignedByte</span> = <span class="t-num">7</span>        <span class="t-com">// UnsignedByte is an alias for Int</span>
+
+<span class="t-kw">def</span> total: <span class="t-ty">Int</span> = count + count + count   <span class="t-com">// 21</span>
+
+<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] = printLine(intToString(total))
+</code></pre>
+    </div>
+    <div class="showcase__note">
+      <span class="badge badge--pass"><span class="badge__dot"></span>zero runtime cost</span>
+      <p>No zoo of fixed-width integer types. <code>Int</code> is one type; its bounds ride along in the refinement channel and cost nothing at runtime — the range is a fact the compiler tracks, not a tag the program carries.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Effects deep section ================= -->
+<section class="block wrap" id="effects">
+  <div class="types">
+    <div class="types__copy">
+      <p class="eyebrow">Effects in the type system</p>
+      <h2>Effects live in the signature</h2>
+      <p>
+        Every function declares the capabilities it uses as an unordered set. The compiler
+        reads that set, refuses any effect a function hasn't declared, and discharges each one
+        explicitly at the edge of your program — no transformer stacks, no ordering baked in.
+      </p>
+      <ul class="types__list">
+        <li><span class="pill">{Console}</span> read and print lines</li>
+        <li><span class="pill">{Throw[E]}</span> typed failures — <code>raise</code> / <code>catch</code></li>
+        <li><span class="pill">{State[S]}</span> threaded state, no mutable variables</li>
+        <li><span class="pill">{Dep[T]}</span> injected dependencies — <code>provide</code></li>
+        <li><span class="pill">{Abort}</span> short-circuit — <code>runAbort</code></li>
+      </ul>
+    </div>
+    <div class="types__art">
+      <div class="code" data-code>
+        <div class="code__bar">
+          <span class="code__dot" aria-hidden="true"></span>
+          <span class="code__file">EffectsMulti.els</span>
+          <button class="code__copy" type="button" data-copy>copy</button>
+        </div>
+<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Dep</span>
+<span class="t-kw">import</span> eliot.effect.<span class="t-ty">Log</span>
+<span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
+
+<span class="t-kw">data</span> <span class="t-ty">Database</span>(url: <span class="t-ty">String</span>)
+
+<span class="t-com">// Three effects at once, in direct style.</span>
+<span class="t-kw">def</span> run: {<span class="t-ty">Dep</span>[<span class="t-ty">Database</span>], <span class="t-ty">Log</span>, <span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = {
+  log(dependency.url)
+  printLine(readLine)
+}
+
+<span class="t-com">// Injected at the discharge site; residual carrier is IO.</span>
+<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] =
+  run.provide(<span class="t-ty">Database</span>(<span class="t-str">"jdbc://app-db"</span>))
+</code></pre>
+      </div>
+      <div class="term">
+        <div class="term__line"><span class="prompt">$ </span>./mill examples.run jvm exe-jar \</div>
+        <div class="term__line">    examples/src/ -m EffectsMulti</div>
+        <div class="term__line"><span class="prompt">$ </span>echo "hello there" | \</div>
+        <div class="term__line">    java -jar target/EffectsMulti.jar</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Build ================= -->
+<section class="block wrap" id="build">
+  <div class="build__inner">
+    <p class="eyebrow">Build from source</p>
+    <h2>One repo. Clone, build, run.</h2>
+    <div class="build__term">
+      <div class="term">
+        <div class="term__line"><span class="prompt">$ </span>git clone https://github.com/robertbraeutigam/eliot</div>
+        <div class="term__line"><span class="prompt">$ </span>cd eliot</div>
+        <div class="term__line"><span class="prompt">$ </span>./mill examples.run jvm exe-jar \</div>
+        <div class="term__line">    examples/src/ -m HelloWorld</div>
+        <div class="term__line"><span class="prompt">$ </span>java -jar target/HelloWorld.jar</div>
+        <div class="term__line is-out">Hello World!<span class="term__cursor" aria-hidden="true"></span></div>
+      </div>
+    </div>
+    <div class="build__row">
+      <a class="btn btn--primary" href="{{ site.github_repo }}" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.76.4-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.28 5.69.42.36.79 1.06.79 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+        View on GitHub
+      </a>
+      <a class="btn btn--ghost" href="{{ site.github_repo }}/tree/main/examples/src" rel="noopener">Browse the examples</a>
+      <span class="badge"><span class="badge__dot" style="background: var(--warn)"></span>Alpha</span>
+      <span class="badge badge--pass"><span class="badge__dot"></span>builds on the JVM today</span>
+    </div>
+    <p class="build__note">
+      Eliot is pre-release. The compiler builds and runs your programs on the JVM today; the
+      native microcontroller backend is in active development. Clone the repo, build an example,
+      and follow along.
+    </p>
+  </div>
+</section>

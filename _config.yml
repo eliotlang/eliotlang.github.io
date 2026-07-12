@@ -1,0 +1,26 @@
+# Eliot — GitHub Pages (Jekyll) configuration
+title: Eliot
+tagline: Embedded Language for the Internet of Things
+description: >-
+  Eliot is the Embedded Language for the Internet of Things — a type system that
+  makes correct, minimal embedded programs feel simple, even on a microcontroller
+  with 32 bytes of RAM. The proofs live in the compiler, not in boilerplate you write.
+url: "https://eliotlang.github.io"
+lang: en
+
+# Real project coordinates
+github_repo: https://github.com/robertbraeutigam/eliot
+status: Alpha · in active development
+
+# Build settings
+exclude:
+  - download/
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - .claude/
+  - vendor/
+
+# No external theme; the site ships its own brand stylesheet.
+theme: null
+plugins: []
