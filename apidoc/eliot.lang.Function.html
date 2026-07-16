@@ -32,7 +32,6 @@
 <li class="tree-leaf" data-name="eliot.lang.Either"><a href="eliot.lang.Either.html">Either</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Eq"><a href="eliot.lang.Eq.html">Eq</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Function"><a class="active" href="eliot.lang.Function.html">Function</a></li>
-<li class="tree-leaf" data-name="eliot.lang.Guard"><a href="eliot.lang.Guard.html">Guard</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Int"><a href="eliot.lang.Int.html">Int</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Interval"><a href="eliot.lang.Interval.html">Interval</a></li>
 <li class="tree-leaf" data-name="eliot.lang.IO"><a href="eliot.lang.IO.html">IO</a></li>
@@ -50,7 +49,7 @@
 <div class="doc"><p>A function from an argument of type <code>A</code> to a result of type <code>B</code> — the type of a lambda, and of any named value that takes one or more arguments. A named value with no parameters is an ordinary value of its result type, not a <code>Function</code>.</p>
 <p>Functions of several arguments are curried: a three-argument function has type <code>A =&gt; B =&gt; C</code>, that is <code>Function[A, Function[B, C]]</code>, so supplying one argument yields the function that takes the next. Spell function types with the infix <code>=&gt;</code> alias — <code>A =&gt; B</code> reads better than <code>Function[A, B]</code> and is the idiomatic form. A function is applied by naming its argument after it — the usual call syntax <code>f(a)</code>, or bare juxtaposition <code>f a</code> (left-associative, so <code>f a b</code> is <code>(f a) b</code>); <code>apply</code> and the <code>.</code> operator are two further spellings of that same application.</p>
 </div>
-</section></section><section class="group"><h2 class="group-title">Definitions</h2><section class="item item-value" id="value--2e">
+</section></section><section class="group"><h2 class="group-title">Functions</h2><section class="item item-value" id="value--2e">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value--2e">.</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
 <pre class="sig"><code><span class="kw">infix</span> <span class="kw">left</span> <span class="kw">below</span> <span class="fn">apply</span> <span class="kw">def</span> <span class="op">.</span>[<span class="ty">A</span>, <span class="ty">B</span>](<span class="fn">a</span><span class="op">:</span> <span class="ty">A</span>, <span class="fn">f</span><span class="op">:</span> <span class="ty">Function</span>[<span class="ty">A</span>, <span class="ty">B</span>])<span class="op">:</span> <span class="ty">B</span></code></pre>
 <div class="doc"><p>Subject-first application: <code>subject.f(rest...)</code> is <code>f(rest..., subject)</code>.</p>

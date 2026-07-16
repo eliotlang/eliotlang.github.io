@@ -32,7 +32,6 @@
 <li class="tree-leaf" data-name="eliot.lang.Either"><a href="eliot.lang.Either.html">Either</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Eq"><a href="eliot.lang.Eq.html">Eq</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Function"><a href="eliot.lang.Function.html">Function</a></li>
-<li class="tree-leaf" data-name="eliot.lang.Guard"><a href="eliot.lang.Guard.html">Guard</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Int"><a class="active" href="eliot.lang.Int.html">Int</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Interval"><a href="eliot.lang.Interval.html">Interval</a></li>
 <li class="tree-leaf" data-name="eliot.lang.IO"><a href="eliot.lang.IO.html">IO</a></li>
@@ -44,61 +43,16 @@
 <li class="tree-leaf" data-name="eliot.lang.Unit"><a href="eliot.lang.Unit.html">Unit</a></li></ul></details></li></ul></details></li>
 </ul>
 </nav>
-<main><h1 class="module-title"><span class="chip chip-module">module</span>eliot.lang.Int</h1><section class="group"><h2 class="group-title">Types</h2><section class="item item-typelike" id="typelike-Byte-1fd528">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-Byte-1fd528">Byte</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">Byte</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-typelike" id="typelike-Int-11fcf">
+<main><h1 class="module-title"><span class="chip chip-module">module</span>eliot.lang.Int</h1><section class="group"><h2 class="group-title">Types</h2><section class="item item-typelike" id="typelike-Int-11fcf">
 <div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-Int-11fcf">Int</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">Int</span></code></pre>
-<div class="doc"><p>The type of all integers. <code>Int</code> is a single type — there are no distinct <code>Int[MIN, MAX]</code> per range: an integer's value range is <em>meta-information</em> tracked in the compiler's refinement channel (<code>docs/bounds-as-refinements.md</code>), carried in the <code>range</code> slot below (an <code>Interval[BigInteger]</code>), not in a type parameter. So <code>Int</code> behaves like any ordinary type — one instantiation, one set of abilities — and how a value is laid out in memory is chosen by the platform from its tracked range.</p>
-</div>
-</section><section class="item item-typelike" id="typelike-Long-243a9c">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-Long-243a9c">Long</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">Long</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-typelike" id="typelike-Medium-89237b95">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-Medium-89237b95">Medium</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">Medium</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-typelike" id="typelike-Short-4c2945c">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-Short-4c2945c">Short</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">Short</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-typelike" id="typelike-UnsignedByte-4dd10dbd">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-UnsignedByte-4dd10dbd">UnsignedByte</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">UnsignedByte</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-typelike" id="typelike-UnsignedLong-4dd57331">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-UnsignedLong-4dd57331">UnsignedLong</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">UnsignedLong</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-typelike" id="typelike-UnsignedMedium-2f68e2ea">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-UnsignedMedium-2f68e2ea">UnsignedMedium</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">UnsignedMedium</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-typelike" id="typelike-UnsignedShort-6d386e67">
-<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-UnsignedShort-6d386e67">UnsignedShort</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">type</span> <span class="ty">UnsignedShort</span> <span class="op">=</span> <span class="ty">Int</span></code></pre>
-
-</section></section><section class="group"><h2 class="group-title">Definitions</h2><section class="item item-value" id="value-intToString-d24eef7b">
+<pre class="sig"><code><span class="kw">type</span> <span class="ty">Int</span> {<span class="fn">range</span><span class="op">:</span> <span class="ty">Interval</span>[<span class="ty">BigInteger</span>]}</code></pre>
+<div class="doc"><p>The type of integers, each carrying a compiler-tracked range of the values it may hold.</p>
+</div><details class="members impls"><summary>Implementations</summary><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">implement</span> <span class="ty">Compare</span>[<span class="ty">Int</span>]</code></pre><span class="badge badge-layer">stdlib</span></div></div><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">implement</span> <span class="ty">Numeric</span>[<span class="ty">Int</span>]</code></pre><span class="badge badge-layer">stdlib</span></div></div></details>
+</section></section><section class="group"><h2 class="group-title">Functions</h2><section class="item item-value" id="value-intToString-d24eef7b">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-intToString-d24eef7b">intToString</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">def</span> <span class="fn">intToString</span>(<span class="fn">value</span><span class="op">:</span> <span class="ty">Int</span>)<span class="op">:</span> <span class="ty">String</span></code></pre>
 <div class="doc"><p>Render an integer as its decimal <code>String</code>.</p>
 </div>
-</section><section class="item item-value" id="value-nativeAdd-c3e7250a">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-nativeAdd-c3e7250a">nativeAdd</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">nativeAdd</span>(<span class="fn">a</span><span class="op">:</span> <span class="ty">Int</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">Int</span>)<span class="op">:</span> <span class="ty">Int</span></code></pre>
-<div class="doc"><p>The three integer arithmetic leaves — one per operator. Each is a backend native the JVM emits inline: the emission reads the operands' and result's machine <em>representations</em> to pick the working machine type and instruction — primitive <code>long</code> (<code>LADD</code>/<code>LSUB</code>/<code>LMUL</code>) when everything fits <code>Long</code>, <code>java.math.BigInteger</code> otherwise. A microcontroller backend would select width-specific instructions from the same lowered representations.</p>
-</div>
-</section><section class="item item-value" id="value-nativeMultiply-3eeb535b">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-nativeMultiply-3eeb535b">nativeMultiply</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">nativeMultiply</span>(<span class="fn">a</span><span class="op">:</span> <span class="ty">Int</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">Int</span>)<span class="op">:</span> <span class="ty">Int</span></code></pre>
-
-</section><section class="item item-value" id="value-nativeSubtract-9d25c84b">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-nativeSubtract-9d25c84b">nativeSubtract</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">nativeSubtract</span>(<span class="fn">a</span><span class="op">:</span> <span class="ty">Int</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">Int</span>)<span class="op">:</span> <span class="ty">Int</span></code></pre>
-
 </section></section><footer>Generated by the Eliot apidoc backend.</footer></main>
 </div>
 <script>

@@ -32,7 +32,6 @@
 <li class="tree-leaf" data-name="eliot.lang.Either"><a href="eliot.lang.Either.html">Either</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Eq"><a href="eliot.lang.Eq.html">Eq</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Function"><a href="eliot.lang.Function.html">Function</a></li>
-<li class="tree-leaf" data-name="eliot.lang.Guard"><a href="eliot.lang.Guard.html">Guard</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Int"><a href="eliot.lang.Int.html">Int</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Interval"><a href="eliot.lang.Interval.html">Interval</a></li>
 <li class="tree-leaf" data-name="eliot.lang.IO"><a href="eliot.lang.IO.html">IO</a></li>
@@ -49,68 +48,7 @@
 <pre class="sig"><code><span class="kw">type</span> <span class="ty">BigInteger</span></code></pre>
 <div class="doc"><p>An arbitrary-precision integer with no bounds.</p>
 <p>The type of integer literals and of the <code>[MIN, MAX]</code> bounds that parameterise <code>Int</code>, so it appears mainly at the type level when describing integer ranges.</p>
-</div>
-</section></section><section class="group"><h2 class="group-title">Definitions</h2><section class="item item-value" id="value-byteMax-152ecf3c">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-byteMax-152ecf3c">byteMax</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">byteMax</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-
-</section><section class="item item-value" id="value-byteMin-152ed02a">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-byteMin-152ed02a">byteMin</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">byteMin</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-<div class="doc"><p>The inclusive bounds of the standard signed machine-integer widths — 8-bit <code>byte</code>, 16-bit <code>short</code>, 32-bit <code>medium</code>, 64-bit <code>long</code>. These are the single definition of each boundary: the <code>Byte</code>/<code>Short</code>/<code>Medium</code>/<code>Long</code> aliases in <code>Int</code> and every platform's representation dispatch reference them rather than repeating the literals.</p>
-</div>
-</section><section class="item item-value" id="value-fitsByte-e28cbaaa">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-fitsByte-e28cbaaa">fitsByte</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">fitsByte</span>(<span class="fn">min</span><span class="op">:</span> <span class="ty">BigInteger</span>, <span class="fn">max</span><span class="op">:</span> <span class="ty">BigInteger</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-<div class="doc"><p>Whether the range <code>[min, max]</code> fits in a signed byte / short / medium / long — the named width-containment predicates a platform's <code>Int</code> representation policy dispatches on (<code>fitsIn</code> specialised to each standard width).</p>
-</div>
-</section><section class="item item-value" id="value-fitsIn-b40c6747">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-fitsIn-b40c6747">fitsIn</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">fitsIn</span>(<span class="fn">lo</span><span class="op">:</span> <span class="ty">BigInteger</span>, <span class="fn">hi</span><span class="op">:</span> <span class="ty">BigInteger</span>, <span class="fn">min</span><span class="op">:</span> <span class="ty">BigInteger</span>, <span class="fn">max</span><span class="op">:</span> <span class="ty">BigInteger</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-<div class="doc"><p>True iff the range <code>[min, max]</code> is fully contained in <code>[lo, hi]</code>.</p>
-<p>The range-containment test platform layers use to select an integer's representation and to gate range coercions. It reduces to a <code>Bool</code> once all four bounds are concrete.</p>
-</div>
-</section><section class="item item-value" id="value-fitsLong-e291201e">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-fitsLong-e291201e">fitsLong</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">fitsLong</span>(<span class="fn">min</span><span class="op">:</span> <span class="ty">BigInteger</span>, <span class="fn">max</span><span class="op">:</span> <span class="ty">BigInteger</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-
-</section><section class="item item-value" id="value-fitsMedium-83ed0897">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-fitsMedium-83ed0897">fitsMedium</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">fitsMedium</span>(<span class="fn">min</span><span class="op">:</span> <span class="ty">BigInteger</span>, <span class="fn">max</span><span class="op">:</span> <span class="ty">BigInteger</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-
-</section><section class="item item-value" id="value-fitsShort-6ff25f1a">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-fitsShort-6ff25f1a">fitsShort</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">fitsShort</span>(<span class="fn">min</span><span class="op">:</span> <span class="ty">BigInteger</span>, <span class="fn">max</span><span class="op">:</span> <span class="ty">BigInteger</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-
-</section><section class="item item-value" id="value-inc-197de">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-inc-197de">inc</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">inc</span>(<span class="fn">bi</span><span class="op">:</span> <span class="ty">BigInteger</span>)<span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-<div class="doc"><p>The successor of <code>bi</code> (<code>bi + 1</code>).</p>
-</div>
-</section><section class="item item-value" id="value-longMax-14c90548">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-longMax-14c90548">longMax</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">longMax</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-
-</section><section class="item item-value" id="value-longMin-14c90636">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-longMin-14c90636">longMin</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">longMin</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-
-</section><section class="item item-value" id="value-mediumMax-80b96daf">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-mediumMax-80b96daf">mediumMax</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">mediumMax</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-
-</section><section class="item item-value" id="value-mediumMin-80b96e9d">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-mediumMin-80b96e9d">mediumMin</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">mediumMin</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-
-</section><section class="item item-value" id="value-shortMax-eb958748">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-shortMax-eb958748">shortMax</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">shortMax</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-
-</section><section class="item item-value" id="value-shortMin-eb958836">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-shortMin-eb958836">shortMin</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">shortMin</span><span class="op">:</span> <span class="ty">BigInteger</span></code></pre>
-
+</div><details class="members impls"><summary>Implementations</summary><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">implement</span> <span class="ty">Compare</span>[<span class="ty">BigInteger</span>]</code></pre><span class="badge badge-layer">stdlib</span></div></div><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">implement</span> <span class="ty">Numeric</span>[<span class="ty">BigInteger</span>]</code></pre><span class="badge badge-layer">stdlib</span></div></div></details>
 </section></section><footer>Generated by the Eliot apidoc backend.</footer></main>
 </div>
 <script>

@@ -32,7 +32,6 @@
 <li class="tree-leaf" data-name="eliot.lang.Either"><a href="eliot.lang.Either.html">Either</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Eq"><a href="eliot.lang.Eq.html">Eq</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Function"><a href="eliot.lang.Function.html">Function</a></li>
-<li class="tree-leaf" data-name="eliot.lang.Guard"><a href="eliot.lang.Guard.html">Guard</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Int"><a href="eliot.lang.Int.html">Int</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Interval"><a href="eliot.lang.Interval.html">Interval</a></li>
 <li class="tree-leaf" data-name="eliot.lang.IO"><a href="eliot.lang.IO.html">IO</a></li>
@@ -48,9 +47,8 @@
 <div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-Pair-25d6fa">Pair</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on jvm">jvm</span></span></div>
 <pre class="sig"><code><span class="kw">type</span> <span class="ty">Pair</span>[<span class="ty">A</span>, <span class="ty">B</span>]</code></pre>
 <div class="doc"><p>An ordered pair of two independently-typed values: a <code>first</code> of type <code>A</code> and a <code>second</code> of type <code>B</code>.</p>
-<p>The product type of the base library. It is what discharging the <code>State[S]</code> effect produces via <code>runStateToPair</code>: a <code>Pair[A, S]</code> of the result and the final state. The field accessors <code>first</code>/<code>second</code> and the eliminator <code>foldPair</code> come with the concrete value constructor.</p>
-</div><div class="members"><h3>Definitions</h3><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">data</span> <span class="ty">Pair</span>[<span class="ty">A</span>, <span class="ty">B</span>](<span class="fn">first</span><span class="op">:</span> <span class="ty">A</span>, <span class="fn">second</span><span class="op">:</span> <span class="ty">B</span>)</code></pre><span class="badge badge-layer">jvm</span></div></div></div>
-</section></section><section class="group"><h2 class="group-title">Definitions</h2><section class="item item-value" id="value-foldPair-117dfa7b">
+</div><details class="members impls"><summary>Definitions</summary><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">data</span> <span class="ty">Pair</span>[<span class="ty">A</span>, <span class="ty">B</span>](<span class="fn">first</span><span class="op">:</span> <span class="ty">A</span>, <span class="fn">second</span><span class="op">:</span> <span class="ty">B</span>)</code></pre><span class="badge badge-layer">jvm</span></div></div></details>
+</section></section><section class="group"><h2 class="group-title">Functions</h2><section class="item item-value" id="value-foldPair-117dfa7b">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-foldPair-117dfa7b">foldPair</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on jvm">jvm</span></span></div>
 <pre class="sig"><code><span class="kw">def</span> <span class="fn">foldPair</span>[<span class="ty">A</span>, <span class="ty">B</span>, <span class="ty">C</span>](<span class="fn">p</span><span class="op">:</span> <span class="ty">Pair</span>[<span class="ty">A</span>, <span class="ty">B</span>], <span class="fn">f</span><span class="op">:</span> <span class="ty">Function</span>[<span class="ty">A</span>, <span class="ty">Function</span>[<span class="ty">B</span>, <span class="ty">C</span>]])<span class="op">:</span> <span class="ty">C</span></code></pre>
 

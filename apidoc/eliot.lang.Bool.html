@@ -32,7 +32,6 @@
 <li class="tree-leaf" data-name="eliot.lang.Either"><a href="eliot.lang.Either.html">Either</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Eq"><a href="eliot.lang.Eq.html">Eq</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Function"><a href="eliot.lang.Function.html">Function</a></li>
-<li class="tree-leaf" data-name="eliot.lang.Guard"><a href="eliot.lang.Guard.html">Guard</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Int"><a href="eliot.lang.Int.html">Int</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Interval"><a href="eliot.lang.Interval.html">Interval</a></li>
 <li class="tree-leaf" data-name="eliot.lang.IO"><a href="eliot.lang.IO.html">IO</a></li>
@@ -48,49 +47,66 @@
 <div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-Bool-1faf0a">Bool</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">type</span> <span class="ty">Bool</span></code></pre>
 <div class="doc"><p>The Boolean truth values, <code>true</code> and <code>false</code>.</p>
-<p>Branch on a <code>Bool</code> with <code>fold</code>: there is no <code>if</code>/<code>then</code>/<code>else</code> syntax, and <code>Bool</code> exposes no pattern-match constructors.</p>
+<p><code>Bool</code> is opaque — it exposes no pattern-match constructors, so it cannot be <code>match</code>ed on. Branch on it with <code>if</code>..<code>else</code> or with <code>fold</code>, its two-armed eliminator; both are ordinary functions, there is no built-in conditional syntax.</p>
 </div>
-</section></section><section class="group"><h2 class="group-title">Definitions</h2><section class="item item-value" id="value--21">
+</section></section><section class="group"><h2 class="group-title">Functions</h2><section class="item item-value" id="value--21">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value--21">!</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">prefix</span> <span class="kw">def</span> <span class="op">!</span>(<span class="fn">a</span><span class="op">:</span> <span class="ty">Bool</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-
+<div class="doc"><p>Logical negation: <code>true</code> becomes <code>false</code> and <code>false</code> becomes <code>true</code>.</p>
+</div>
 </section><section class="item item-value" id="value--4c0">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value--4c0">&amp;&amp;</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">infix</span> <span class="kw">left</span> <span class="kw">def</span> <span class="op">&amp;&amp;</span>(<span class="fn">a</span><span class="op">:</span> <span class="ty">Bool</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">Bool</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
 <div class="doc"><p>Logical conjunction: <code>true</code> when both <code>a</code> and <code>b</code> are <code>true</code>.</p>
+<p>Both operands are ordinary values — there is no short-circuiting. To run a computation only when a condition holds, branch with <code>if</code>..<code>else</code> instead.</p>
 </div>
 </section><section class="item item-value" id="value-false-5cb1923">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-false-5cb1923">false</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">def</span> <span class="fn">false</span><span class="op">:</span> <span class="ty">Bool</span></code></pre>
-<div class="doc"><p>The false truth value.</p>
+<div class="doc"><p>The negative truth value: <code>fold</code> takes its <code>whenFalse</code> arm, and <code>if</code> falls through to its <code>else</code>.</p>
 </div>
 </section><section class="item item-value" id="value-fold-300c01">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-fold-300c01">fold</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">def</span> <span class="fn">fold</span>[<span class="ty">A</span>](<span class="fn">condition</span><span class="op">:</span> <span class="ty">Bool</span>, <span class="fn">whenTrue</span><span class="op">:</span> <span class="ty">A</span>, <span class="fn">whenFalse</span><span class="op">:</span> <span class="ty">A</span>)<span class="op">:</span> <span class="ty">A</span></code></pre>
-<div class="doc"><p>Choose between two values on a <code>Bool</code>: yields <code>whenTrue</code> when <code>condition</code> is <code>true</code>, otherwise <code>whenFalse</code>.</p>
-<p>The only way to branch on a <code>Bool</code>. Eliot is strict, so <code>whenTrue</code> and <code>whenFalse</code> are ordinary value arguments rather than lazily-guarded branches — <code>fold</code> selects one, it is not short-circuit control flow.</p>
-<pre class="code"><code><span class="kw">def</span> <span class="fn">describe</span>(<span class="fn">b</span><span class="op">:</span> <span class="ty">Bool</span>)<span class="op">:</span> <span class="ty">String</span> <span class="op">=</span> <span class="fn">fold</span>(<span class="fn">b</span>, <span class="str">&quot;yes&quot;</span>, <span class="str">&quot;no&quot;</span>)</code></pre>
+<div class="doc"><p>The two-armed eliminator for <code>Bool</code>: yields <code>whenTrue</code> when <code>condition</code> holds, otherwise <code>whenFalse</code>.</p>
+<p>Both arms must have the same type — a pure arm is not auto-lifted to match an effectful one — and <code>fold</code> adds nothing to the effect row: with effectful arms the result is simply the arms' shared carrier type, and only the selected arm is ever run. For everyday branching prefer <code>if</code>..<code>else</code>, which is built on <code>fold</code> and does lift a pure arm to match an effectful one.</p>
+<p>The refinement of the result is the join of the two arms': which arm applies is decided only at runtime, so the compiler knows the result only as &quot;one arm <em>or</em> the other&quot; — e.g. an <code>Int</code> result's range covers both arms' ranges.</p>
+<pre class="code"><code><span class="cm">// Pure arms of one type: fold selects a value, adding nothing to the effect row.</span>
+<span class="kw">def</span> <span class="fn">label</span>(<span class="fn">active</span><span class="op">:</span> <span class="ty">Bool</span>)<span class="op">:</span> <span class="ty">String</span> <span class="op">=</span> <span class="fn">fold</span>(<span class="fn">active</span>, <span class="str">&quot;ON&quot;</span>, <span class="str">&quot;OFF&quot;</span>)
+
+<span class="cm">// Effectful arms: both are {Console} Unit, and only the selected one runs.</span>
+<span class="kw">def</span> <span class="fn">report</span>(<span class="fn">ok</span><span class="op">:</span> <span class="ty">Bool</span>)<span class="op">:</span> {<span class="ty">Console</span>} <span class="ty">Unit</span> <span class="op">=</span>
+   <span class="fn">fold</span>(<span class="fn">ok</span>, <span class="fn">printLine</span>(<span class="str">&quot;all good&quot;</span>), <span class="fn">printLine</span>(<span class="str">&quot;check failed&quot;</span>))</code></pre>
 </div>
 </section><section class="item item-value" id="value-if-d1d">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-if-d1d">if</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
 <pre class="sig"><code><span class="kw">def</span> <span class="fn">if</span>[<span class="ty">T</span>](<span class="fn">condition</span><span class="op">:</span> <span class="ty">Bool</span>, <span class="fn">value</span><span class="op">:</span> {<span class="ty">Abort</span>} <span class="ty">T</span>)<span class="op">:</span> {<span class="ty">Abort</span>} <span class="ty">T</span></code></pre>
-<div class="doc"><p>Conditional execution — the <code>if</code> of <code>if..else</code>. Yields <code>value</code> when <code>condition</code> holds, otherwise short-circuits via the <code>Abort</code> effect, which the <code>else</code> operator (in <code>eliot.effect.Abort</code>) discharges with the alternative.</p>
-<p>The branch type <code>{Abort} T</code> is the effect-row sugar (one inferred carrier for the whole signature), so <code>value</code> may be a pure value (<code>if(cond, &quot;yes&quot;)</code> — auto-lifted with <code>pure</code>) or an effectful computation (<code>if(cond, printLine(&quot;hi&quot;))</code>, whose own effects join the row). Only the selected branch's effect is performed: both branches are <em>built</em>, but the unchosen one is never <em>run</em>, so this reads like an imperative <code>if</code>. Chains right-associatively as <code>if(..) else if(..) else ..</code>.</p>
-</div>
-</section><section class="item item-value" id="value-not-1aad3">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-not-1aad3">not</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on lang">lang</span></span></div>
-<pre class="sig"><code><span class="kw">def</span> <span class="fn">not</span>(<span class="fn">b</span><span class="op">:</span> <span class="ty">Bool</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-<div class="doc"><p>Logical negation: <code>true</code> when <code>b</code> is <code>false</code> and vice versa.</p>
+<div class="doc"><p>Conditional execution — the <code>if</code> of <code>if..else</code>: yields <code>value</code> when <code>condition</code> holds, otherwise short-circuits via the <code>Abort</code> effect.</p>
+<p>Pair it with the infix <code>else</code> (in <code>eliot.effect.Abort</code>), which discharges the <code>Abort</code> with an alternative; <code>else</code> binds right-associatively, so chains spell naturally as <code>if(..) else if(..) else ..</code>. Without an <code>else</code> the <code>{Abort}</code> floats up to the caller, making a bare <code>if</code> a guard inside an <code>{Abort}</code> function.</p>
+<p><code>value</code> may be a pure value (<code>if(cond, &quot;yes&quot;)</code>, auto-lifted) or an effectful computation (<code>if(cond, printLine(&quot;hi&quot;))</code>, whose own effects join the row). Both branches of an <code>if..else</code> are <em>built</em>, but only the selected one is ever <em>run</em>, so this reads like an imperative <code>if</code>.</p>
+<p>Since <code>if</code> curries just like all functions do, the second argument can appear after the first argument is applied separately, so <code>if(cond, &quot;yes&quot;)</code> becomes <code>if(conf) &quot;yes&quot;</code>, just like in an imperative language.</p>
+<pre class="code"><code><span class="cm">// A pure value chosen by a chain; else binds right-associatively.</span>
+<span class="kw">def</span> <span class="fn">sign</span>(<span class="fn">n</span><span class="op">:</span> <span class="ty">Int</span>)<span class="op">:</span> <span class="ty">String</span> <span class="op">=</span> <span class="fn">if</span>(<span class="fn">n</span> <span class="op">&gt;</span> <span class="num">0</span>) <span class="str">&quot;+&quot;</span> <span class="fn">else</span> <span class="fn">if</span>(<span class="fn">n</span> <span class="op">&lt;</span> <span class="num">0</span>) <span class="str">&quot;-&quot;</span> <span class="fn">else</span> <span class="str">&quot;0&quot;</span>
+
+<span class="cm">// Effectful branches: only the taken branch's printLine runs, and else discharges</span>
+<span class="cm">// the {Abort}, so greet declares only {Console}.</span>
+<span class="kw">def</span> <span class="fn">greet</span>(<span class="fn">known</span><span class="op">:</span> <span class="ty">Bool</span>, <span class="fn">name</span><span class="op">:</span> <span class="ty">String</span>)<span class="op">:</span> {<span class="ty">Console</span>} <span class="ty">Unit</span> <span class="op">=</span>
+   <span class="fn">if</span>(<span class="fn">known</span>) <span class="fn">printLine</span>(<span class="fn">name</span>) <span class="fn">else</span> <span class="fn">printLine</span>(<span class="str">&quot;hello, stranger&quot;</span>)
+
+<span class="cm">// No else: a guard — the {Abort} floats up to the caller.</span>
+<span class="kw">def</span> <span class="fn">requirePositive</span>(<span class="fn">n</span><span class="op">:</span> <span class="ty">Int</span>)<span class="op">:</span> {<span class="ty">Abort</span>} <span class="ty">Int</span> <span class="op">=</span> <span class="fn">if</span>(<span class="fn">n</span> <span class="op">&gt;</span> <span class="num">0</span>) <span class="fn">n</span></code></pre>
 </div>
 </section><section class="item item-value" id="value-true-36758e">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-true-36758e">true</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">def</span> <span class="fn">true</span><span class="op">:</span> <span class="ty">Bool</span></code></pre>
-<div class="doc"><p>The true truth value.</p>
+<div class="doc"><p>The affirmative truth value: <code>if</code> and <code>fold</code> take their first branch on it.</p>
 </div>
 </section><section class="item item-value" id="value--f80">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value--f80">||</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
 <pre class="sig"><code><span class="kw">infix</span> <span class="kw">left</span> <span class="kw">at</span> <span class="op">&amp;&amp;</span> <span class="kw">def</span> <span class="op">||</span>(<span class="fn">a</span><span class="op">:</span> <span class="ty">Bool</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">Bool</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-
+<div class="doc"><p>Logical disjunction: <code>true</code> when at least one of <code>a</code> and <code>b</code> is <code>true</code>.</p>
+<p><code>||</code> sits at the <em>same</em> precedence as <code>&amp;&amp;</code> (unlike most languages, where <code>&amp;&amp;</code> binds tighter), so a mixed chain groups left to right: <code>a || b &amp;&amp; c</code> is <code>(a || b) &amp;&amp; c</code> — parenthesise when you mean <code>a || (b &amp;&amp; c)</code>. Operands are ordinary values; there is no short-circuiting.</p>
+</div>
 </section></section><footer>Generated by the Eliot apidoc backend.</footer></main>
 </div>
 <script>

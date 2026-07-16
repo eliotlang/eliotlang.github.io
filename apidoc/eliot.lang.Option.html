@@ -32,7 +32,6 @@
 <li class="tree-leaf" data-name="eliot.lang.Either"><a href="eliot.lang.Either.html">Either</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Eq"><a href="eliot.lang.Eq.html">Eq</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Function"><a href="eliot.lang.Function.html">Function</a></li>
-<li class="tree-leaf" data-name="eliot.lang.Guard"><a href="eliot.lang.Guard.html">Guard</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Int"><a href="eliot.lang.Int.html">Int</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Interval"><a href="eliot.lang.Interval.html">Interval</a></li>
 <li class="tree-leaf" data-name="eliot.lang.IO"><a href="eliot.lang.IO.html">IO</a></li>
@@ -49,8 +48,8 @@
 <pre class="sig"><code><span class="kw">type</span> <span class="ty">Option</span>[<span class="ty">A</span>]</code></pre>
 <div class="doc"><p>An optional value: either present or absent.</p>
 <p>Models a value that may be missing without resorting to a sentinel or an error — <code>some(x)</code> holds a present value and <code>none</code> marks its absence.</p>
-</div><div class="members"><h3>Definitions</h3><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">data</span> <span class="ty">Option</span>[<span class="ty">A</span>] <span class="op">=</span> <span class="ty">None</span> <span class="op">|</span> <span class="ty">Some</span>(<span class="fn">value</span><span class="op">:</span> <span class="ty">A</span>)</code></pre><span class="badge badge-layer">compiler, jvm</span></div></div></div>
-</section></section><section class="group"><h2 class="group-title">Definitions</h2><section class="item item-value" id="value-foldOption-a90cbbd6">
+</div><details class="members impls"><summary>Definitions</summary><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">data</span> <span class="ty">Option</span>[<span class="ty">A</span>] <span class="op">=</span> <span class="ty">None</span> <span class="op">|</span> <span class="ty">Some</span>(<span class="fn">value</span><span class="op">:</span> <span class="ty">A</span>)</code></pre><span class="badge badge-layer">compiler, jvm</span></div></div></details>
+</section></section><section class="group"><h2 class="group-title">Functions</h2><section class="item item-value" id="value-foldOption-a90cbbd6">
 <div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-foldOption-a90cbbd6">foldOption</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on compiler">compiler</span><span class="badge badge-impl" title="implemented on jvm">jvm</span></span></div>
 <pre class="sig"><code><span class="kw">def</span> <span class="fn">foldOption</span>[<span class="ty">A</span>, <span class="ty">B</span>](<span class="fn">o</span><span class="op">:</span> <span class="ty">Option</span>[<span class="ty">A</span>], <span class="fn">ifNone</span><span class="op">:</span> <span class="ty">B</span>, <span class="fn">ifSome</span><span class="op">:</span> <span class="ty">Function</span>[<span class="ty">A</span>, <span class="ty">B</span>])<span class="op">:</span> <span class="ty">B</span></code></pre>
 <div class="doc"><p>Eliminate an <code>Option</code>: return <code>ifNone</code> when <code>o</code> is <code>None</code>, or <code>ifSome(value)</code> when it is <code>Some(value)</code>.</p>
