@@ -24,3 +24,17 @@ exclude:
 # No external theme; the site ships its own brand stylesheet.
 theme: null
 plugins: []
+
+# Documentation / tutorial — a multi-page section, one Markdown file per chapter.
+# Order and grouping live in each chapter's front matter (`order:`, `part:`).
+collections:
+  docs:
+    output: true
+    permalink: /docs/:name/
+
+defaults:
+  - scope:
+      path: ""
+      type: docs
+    values:
+      layout: docs

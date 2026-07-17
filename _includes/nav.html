@@ -1,15 +1,15 @@
 <header class="nav">
   <div class="nav__inner wrap">
-    <a class="nav__brand" href="#top" aria-label="Eliot — home">
+    <a class="nav__brand" href="{{ '/' | relative_url }}" aria-label="Eliot — home">
       <img class="mark" src="{{ '/assets/img/eliot-mark-dark.svg' | relative_url }}" width="26" height="26" alt="" />
       <img class="word" src="{{ '/assets/img/eliot-wordmark-dark.svg' | relative_url }}" alt="eliot" height="18" />
     </a>
     <nav class="nav__links" aria-label="Primary">
-      <a href="#language">Language</a>
-      <a href="#examples">Examples</a>
-      <a href="#effects">Effects</a>
+      <a href="{{ '/#language' | relative_url }}">Language</a>
+      <a href="{{ '/#examples' | relative_url }}">Examples</a>
+      <a href="{{ '/docs/' | relative_url }}">Docs</a>
       <a href="{{ '/apidoc/' | relative_url }}">API</a>
-      <a href="#build">Build</a>
+      <a href="{{ '/#build' | relative_url }}">Build</a>
     </nav>
     <div class="nav__actions">
       <a class="nav__icon" href="{{ site.github_repo }}" aria-label="Eliot on GitHub" rel="noopener">

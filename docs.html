@@ -1,0 +1,45 @@
+---
+layout: docs
+title: Documentation
+permalink: /docs/
+description: Learn Eliot from the ground up — a hands-on guide to the language, its type system, and its algebraic effects.
+---
+
+<p class="docs-lead">
+  A hands-on guide to Eliot — the functional, generic language for microcontrollers.
+  It starts from a one-line program and builds up to the type system, algebraic effects,
+  abilities, and the layer model, one small idea at a time. Every program on these pages is
+  real Eliot that compiles and runs on the JVM today.
+</p>
+
+<p>
+  New here? Start with the introduction and work forward — each chapter assumes the ones before it.
+  Already know the basics? Jump straight to the part you need from the sidebar.
+</p>
+
+<p>
+  <a class="btn btn--primary" href="{{ '/docs/introduction/' | relative_url }}">Start reading →</a>
+</p>
+
+<blockquote class="warn">
+  <p><strong>Eliot is pre-release (alpha).</strong> The core language described in the first parts
+  of this guide is stable and runnable today; chapters marked <em>soon</em> cover areas that are
+  still settling, and are outlined so you can see where the guide is going.</p>
+</blockquote>
+
+{% assign docs = site.docs | sort: "order" %}
+<div class="docs-overview__parts">
+{% assign current_part = "" %}
+{% for d in docs %}
+  {% if d.part != current_part %}
+    {% unless forloop.first %}</ol></div>{% endunless %}
+    <div class="docs-part-card"><h3>{{ d.part }}</h3><ol>
+    {% assign current_part = d.part %}
+  {% endif %}
+  <li><span class="n">{{ d.order }}</span>
+    {% if d.stub %}<span class="soon-txt">{{ d.nav_title | default: d.title }} — soon</span>
+    {% else %}<a href="{{ d.url | relative_url }}">{{ d.nav_title | default: d.title }}</a>{% endif %}
+  </li>
+  {% if forloop.last %}</ol></div>{% endif %}
+{% endfor %}
+</div>
