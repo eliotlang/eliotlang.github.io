@@ -7,7 +7,7 @@ summary: What Eliot is, what makes it different, and what's stable enough to bui
 ---
 
 Eliot is a functional, generic programming language for microcontrollers. It is designed
-around one uncompromising goal: **correct, minimal programs that fit on hardware with bytes
+around one uncompromising goal: **correct, minimal, portable programs that fit on hardware with bytes
 of RAM to spare** — with the proofs living in the compiler, not in boilerplate you write.
 {: .docs-lead}
 
@@ -20,9 +20,11 @@ Every idea is introduced with a small program you can compile and run.
 A handful of design decisions shape everything else in the language. It is worth meeting them
 up front — each one gets its own chapter later.
 
-- **Types are values.** A type is an ordinary value of type `Type`, and `Type` itself has type
-  `Type`. A `def` can compute and return a type; a generic argument can be a number or a
-  string. This one idea replaces a whole pile of special-purpose machinery.
+- **Write once, run on any target.** A program is written for *Eliot*, not for a specific chip.
+  The same source compiles to whatever the backend targets — the JVM today, a bare-metal
+  microcontroller next — with no per-board dialects, conditional compilation, or hand-rewriting.
+  A platform-neutral core is merged with a thin *layer* that describes the hardware, so the code
+  you write stays identical across every device.
 
 - **One integer type, with ranges.** There is no `Int8`/`Int16`/`Int32` zoo. There is just
   `Int`, and a value's *range* rides along as meta-information the compiler tracks. Arithmetic
