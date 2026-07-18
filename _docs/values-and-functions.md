@@ -45,12 +45,6 @@ Each argument is `name: Type`, and the return type still comes after the list. T
 itself optional — `greeting` above simply has none, which is why it reads as a plain constant rather
 than a function.
 
-> **Return types can often be *calculated*.** For `double`, you could also let the compiler work out
-> the exact result range from the body. We'll cover that in
-> [Integers & ranges]({{ '/docs/integers-and-ranges/' | relative_url }}); for now, writing the type
-> out is always fine.
-{: .note}
-
 ## Everything is curried
 
 This is the one idea about functions that shapes how Eliot code is written. A multi-argument
