@@ -33,12 +33,11 @@ know about it:
   branch not taken. (When the arms are effectful *computations*, only the selected one is actually
   **run**, but you should never rely on a pure arm being skipped for correctness.)
 
-`fold` is also the tool of choice whenever you want a **pure value** chosen by a condition, because —
-as we're about to see — `if..else` is not.
+Writing `fold` by hand everywhere gets tedious, so the prelude builds a familiar `if..else` directly
+on top of it — that's what you'll reach for almost every time.
 
 ## `if..else`: the readable form
 
-Writing `fold` everywhere would be tedious, so the prelude builds a familiar `if..else` on top of it.
 `if` is a function too — `if(condition, value)` yields `value` when the condition holds, and otherwise
 **short-circuits**. The infix `else` supplies the alternative. Because everything is curried,
 `if(cond, value)` can be written `if(cond) value`, which is what makes the classic spelling read
@@ -48,10 +47,10 @@ naturally:
 import eliot.effect.Console
 import eliot.effect.Abort
 
-def sign(n: Int): {Console} Unit =
+def classify(n: Int): {Console} Unit =
   printLine(if(n > 0) "positive" else if(n < 0) "negative" else "zero")
 
-def main: IO[Unit] = sign(42)
+def main: IO[Unit] = classify(42)
 ```
 
 This prints `positive`. `else` binds **right-associatively**, so `if … else if … else …` chains nest
@@ -60,35 +59,30 @@ exactly the way you'd expect.
 > **Why the `import eliot.effect.Abort`?** A bare `if` that doesn't match its condition short-circuits
 > using the `Abort` effect, and the infix `else` is what *discharges* that effect by providing the
 > fallback — so using `if..else` means importing `else` from `eliot.effect.Abort`. When an `if..else`
-> is complete, the `Abort` is fully handled and never appears in your function's type: `sign` above
+> is complete, the `Abort` is fully handled and never appears in your function's type: `classify` above
 > declares only `{Console}`. This is your first taste of introducing an effect and then discharging
 > it; the [Effects]({{ '/docs/effects/' | relative_url }}) part makes it precise.
 {: .note}
 
-## `if..else` produces a carrier value, not a pure one
+## Pure or effectful, it's the same `if..else`
 
-Here is the one surprise. Discharging with `else` produces a value that **rides an effect carrier** —
-it is not a plain, pure value. So this is rejected by the compiler:
+An `if..else` is an expression like any other, so it works wherever a value is expected. As the body
+of a pure function it just hands you back a plain value — no effect row, no ceremony:
 
 ```eliot
-def sign(n: Int): String = if(n > 0) "+" else "-"   // error: result rides an effect carrier
+def sign(n: Int): String = if(n > 0) "+" else "-"
 ```
 
-The error reads *"result rides an effect carrier but its declared return type is pure"*. There is no
-"identity carrier" to discharge into, so `if..else` cannot hand you back a bare `String`. You have two
-good options:
+Chains and intermediate `val` bindings read exactly the same way:
 
-- **Use it inside an effectful context**, where a carrier is already present — feeding a `printLine`,
-  as `sign` does above, or as one step of a `{…}` computation. The result rides that context's
-  carrier.
-- **Use `fold` for a pure value** — `fold(active, "ON", "OFF")` returns a plain `String` directly,
-  because `fold` takes both arms as already-typed values and never introduces `Abort`.
+```eliot
+def describe(a: Bool, b: Bool): String = {
+  val category = if(a) "first" else if(b) "second" else "third"
+  category
+}
+```
 
-The rule of thumb: reach for `if..else` when you're *doing* something conditionally (an effectful
-step), and `fold` when you're *choosing* a pure value.
-
-Either way, only the taken branch's effects run. `if`'s branches can be pure values or effectful
-computations:
+When the branches are effectful computations instead, only the taken branch is ever run:
 
 ```eliot
 def greet(known: Bool, name: String): {Console} Unit =
@@ -97,6 +91,17 @@ def greet(known: Bool, name: String): {Console} Unit =
 
 A bare `if` with **no** `else` doesn't discharge the `Abort` — it floats up to the caller, turning the
 `if` into a guard. That's occasionally what you want, but most of the time you write the `else`.
+
+## `fold` or `if..else`?
+
+Both compile down to the same eliminator, so the choice is only about fit:
+
+- Reach for **`if..else`** by default. It reads like the `if` you already know, it chains, it guards,
+  and it works the same in a pure function or an effectful one.
+- Reach for **`fold`** when you already hold two ready-made values of the same type and simply want to
+  select one. It's a plain function call — no `else`, and it never introduces `Abort` in the first
+  place. The trade-off is that both arms must already share a type; `fold` won't lift a pure arm to
+  meet an effectful one the way `if`'s arm does.
 
 ## Boolean operators
 
@@ -122,9 +127,9 @@ def describe(m: Maybe[String]): String = m match {
 }
 ```
 
-The rule of thumb: reach for `if..else` for a `Bool` decision that *does* something, `fold` for a
-`Bool` decision that *picks* a value, and `match` when you're distinguishing the *constructors* of a
-value. All three compile down to the same eliminators — there's no magic control flow hiding
+The rule of thumb: reach for `if..else` for a `Bool` decision, `match` when you're distinguishing the
+*constructors* of a value, and drop down to `fold` when you just want to pick between two ready-made
+values. All three compile down to the same eliminators — there's no magic control flow hiding
 underneath, which is exactly what keeps Eliot programs analyzable.
 
 Next: defining your own data types, and taking them apart with `match`.
