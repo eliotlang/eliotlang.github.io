@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>eliot.lang.Eq · Eliot</title>
+<title>eliot.collection.List · Eliot</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9ImVsaW90Ij48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNC4xIiBmaWxsPSIjMEYxNDE5Ij48L3JlY3Q+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUuMzgsNDQuODApIHNjYWxlKDAuMDM1MDY4NDkzMTUwNjg0OTM2LC0wLjAzNTA2ODQ5MzE1MDY4NDkzNikiPjxwYXRoIGQ9Ik0zMDAgLTEwUTIwMSAtMTAgMTQwLjUgNDkuMFE4MCAxMDggODAgMjEwVjM0MFE4MCA0NDIgMTQwLjUgNTAxLjBRMjAxIDU2MCAzMDAgNTYwUTM2NiA1NjAgNDE1LjUgNTMzLjVRNDY1IDUwNyA0OTIuNSA0NTkuNVE1MjAgNDEyIDUyMCAzNDlWMjUwSDE3N1YyMDJRMTc3IDE0MiAyMTAuMCAxMDguMFEyNDMgNzQgMzAwIDc0UTM0OCA3NCAzNzkuMCA5Mi4wUTQxMCAxMTAgNDE2IDE0Mkg1MTVRNTA1IDcyIDQ0Ni4wIDMxLjBRMzg3IC0xMCAzMDAgLTEwWk0xNzcgMzQ5VjMyM0g0MjNWMzQ5UTQyMyA0MTIgMzkxLjAgNDQ2LjBRMzU5IDQ4MCAzMDAgNDgwUTI0MSA0ODAgMjA5LjAgNDQ2LjBRMTc3IDQxMiAxNzcgMzQ5WiIgZmlsbD0iI0VERUFFMyI+PC9wYXRoPjwvZz48cmVjdCB4PSI0MC42OSIgeT0iMTkuMjAiIHdpZHRoPSI1LjEyIiBoZWlnaHQ9IjI1LjYwIiBmaWxsPSIjMkVDMjdFIj48L3JlY3Q+PC9zdmc+">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -13,7 +13,7 @@
 <div class="brandbar"><a class="brand" href="/">eliot<span class="eliot-cursor"></span></a><a class="tag" href="index.html">apidoc</a></div>
 <input class="search" type="search" placeholder="Filter modules…" oninput="filterModules(this.value)" aria-label="Filter modules">
 <ul class="tree" id="tree">
-<li class="tree-dir" data-name="eliot"><details class="tree-pkg" open><summary>eliot</summary><ul class="tree"><li class="tree-dir" data-name="eliot.collection"><details class="tree-pkg" open><summary>collection</summary><ul class="tree"><li class="tree-leaf" data-name="eliot.collection.List"><a href="eliot.collection.List.html">List</a></li></ul></details></li>
+<li class="tree-dir" data-name="eliot"><details class="tree-pkg" open><summary>eliot</summary><ul class="tree"><li class="tree-dir" data-name="eliot.collection"><details class="tree-pkg" open><summary>collection</summary><ul class="tree"><li class="tree-leaf" data-name="eliot.collection.List"><a class="active" href="eliot.collection.List.html">List</a></li></ul></details></li>
 <li class="tree-dir" data-name="eliot.compiler"><details class="tree-pkg" open><summary>compiler</summary><ul class="tree"><li class="tree-dir" data-name="eliot.compiler.internal"><details class="tree-pkg" open><summary>internal</summary><ul class="tree"><li class="tree-leaf" data-name="eliot.compiler.internal.PatternMatch"><a href="eliot.compiler.internal.PatternMatch.html">PatternMatch</a></li>
 <li class="tree-leaf" data-name="eliot.compiler.internal.TypeMatch"><a href="eliot.compiler.internal.TypeMatch.html">TypeMatch</a></li></ul></details></li>
 <li class="tree-leaf" data-name="eliot.compiler.Meta"><a href="eliot.compiler.Meta.html">Meta</a></li>
@@ -33,7 +33,7 @@
 <li class="tree-leaf" data-name="eliot.lang.Bool"><a href="eliot.lang.Bool.html">Bool</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Compare"><a href="eliot.lang.Compare.html">Compare</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Either"><a href="eliot.lang.Either.html">Either</a></li>
-<li class="tree-leaf" data-name="eliot.lang.Eq"><a class="active" href="eliot.lang.Eq.html">Eq</a></li>
+<li class="tree-leaf" data-name="eliot.lang.Eq"><a href="eliot.lang.Eq.html">Eq</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Function"><a href="eliot.lang.Function.html">Function</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Id"><a href="eliot.lang.Id.html">Id</a></li>
 <li class="tree-leaf" data-name="eliot.lang.Int"><a href="eliot.lang.Int.html">Int</a></li>
@@ -47,24 +47,39 @@
 <li class="tree-leaf" data-name="eliot.lang.Unit"><a href="eliot.lang.Unit.html">Unit</a></li></ul></details></li></ul></details></li>
 </ul>
 </nav>
-<main><h1 class="module-title"><span class="chip chip-module">module</span>eliot.lang.Eq</h1><section class="group"><h2 class="group-title">Abilities</h2><section class="item item-ability" id="ability-Eq-8cc">
-<div class="item-head"><span class="chip chip-ability">ability</span><h2 class="item-name"><a href="#ability-Eq-8cc">Eq</a></h2><span class="badges"></span></div>
-<pre class="sig"><code><span class="kw">ability</span> <span class="ty">Eq</span>[<span class="ty">A</span>]</code></pre>
-<div class="doc"><p>Equality — the ability that supplies <code>==</code> and <code>!=</code> for a type <code>A</code>.</p>
-<p>Because Eliot draws no line between the type level and the value level, <code>Eq</code> works for ordinary values <em>and</em> for types: an instance for the type of all types (<code>Eq[Type]</code>, structural equality of types) lets a compiler-evaluated guard such as <code>where E1 != E2</code> decide whether two type parameters are the same. Value instances (<code>Eq[Int]</code>, <code>Eq[String]</code>, …) are added by the platform layers where a representation exists.</p>
-<p><code>equals</code> is the single primitive; <code>==</code> and <code>!=</code> are the operators built on it.</p>
-</div><div class="members"><h3>Methods</h3><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">def</span> <span class="fn">equals</span>(<span class="fn">a</span><span class="op">:</span> <span class="ty">A</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">A</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre></div><div class="doc"><p><code>true</code> when <code>a</code> and <code>b</code> are equal.</p>
-</div></div></div><details class="members impls"><summary>Implementations</summary><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">implement</span> <span class="ty">Eq</span>[<span class="ty">String</span>]</code></pre><span class="badge badge-layer">stdlib</span></div></div><div class="member"><div class="member-sig"><pre class="sig"><code><span class="kw">implement</span> <span class="ty">Eq</span>[<span class="ty">Type</span>]</code></pre><span class="badge badge-layer">lang</span></div></div></details>
-</section></section><section class="group"><h2 class="group-title">Functions</h2><section class="item item-value" id="value--43c">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value--43c">!=</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">infix</span> <span class="kw">left</span> <span class="kw">at</span> <span class="op">==</span> <span class="kw">def</span> <span class="op">!=</span>[<span class="ty">A</span> <span class="op">~</span> <span class="ty">Eq</span>](<span class="fn">a</span><span class="op">:</span> <span class="ty">A</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">A</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-<div class="doc"><p>Inequality operator: the negation of <code>==</code>. <code>a != b</code> is <code>true</code> exactly when <code>a == b</code> is <code>false</code>.</p>
+<main><h1 class="module-title"><span class="chip chip-module">module</span>eliot.collection.List</h1><section class="group"><h2 class="group-title">Types</h2><section class="item item-typelike" id="typelike-List-2424be">
+<div class="item-head"><span class="chip chip-typelike">type</span><h2 class="item-name"><a href="#typelike-List-2424be">List</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
+<pre class="sig"><code><span class="kw">type</span> <span class="ty">List</span>[<span class="ty">A</span>]</code></pre>
+<div class="doc"><p>An immutable, ordered sequence of <code>A</code> values.</p>
+<p><code>List</code> is abstract in the base layer — it commits to no representation. A platform provides one: the JVM layer maps it to a native <code>java.util.List</code> (so lists pass to and from Java library methods directly), immutable by contract — <code>append</code> builds a fresh list and there is no mutator in this API.</p>
+<p>Build with <code>empty</code> and <code>append</code>, consume with <code>fold</code>:</p>
+<pre class="code"><code><span class="kw">def</span> <span class="fn">digits</span><span class="op">:</span> <span class="ty">List</span>[<span class="ty">Int</span>] <span class="op">=</span> <span class="fn">append</span>(<span class="fn">append</span>(<span class="fn">append</span>(<span class="fn">empty</span>, <span class="num">1</span>), <span class="num">2</span>), <span class="num">3</span>)
+<span class="kw">def</span> <span class="fn">total</span>(<span class="fn">list</span><span class="op">:</span> <span class="ty">List</span>[<span class="ty">Int</span>])<span class="op">:</span> <span class="ty">Int</span> <span class="op">=</span> <span class="fn">list</span><span class="op">.</span><span class="fn">foldLeft</span>(<span class="num">0</span>, <span class="fn">e</span> <span class="op">-&gt;</span> <span class="fn">acc</span> <span class="op">-&gt;</span> <span class="fn">add</span>(<span class="fn">e</span>, <span class="fn">acc</span>))</code></pre>
 </div>
-</section><section class="item item-value" id="value--7a0">
-<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value--7a0">==</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
-<pre class="sig"><code><span class="kw">infix</span> <span class="kw">left</span> <span class="kw">above</span> <span class="op">&amp;&amp;</span> <span class="kw">def</span> <span class="op">==</span>[<span class="ty">A</span> <span class="op">~</span> <span class="ty">Eq</span>](<span class="fn">a</span><span class="op">:</span> <span class="ty">A</span>, <span class="fn">b</span><span class="op">:</span> <span class="ty">A</span>)<span class="op">:</span> <span class="ty">Bool</span></code></pre>
-<div class="doc"><p>Equality operator: <code>a == b</code> is <code>true</code> when <code>a</code> and <code>b</code> are equal under <code>Eq[A]</code>.</p>
-<p>Binds tighter than <code>&amp;&amp;</code>, so <code>a == b &amp;&amp; c == d</code> reads as <code>(a == b) &amp;&amp; (c == d)</code>.</p>
+</section></section><section class="group"><h2 class="group-title">Functions</h2><section class="item item-value" id="value-append-abe4cf1a">
+<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-append-abe4cf1a">append</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
+<pre class="sig"><code><span class="kw">def</span> <span class="fn">append</span>[<span class="ty">A</span>](<span class="fn">list</span><span class="op">:</span> <span class="ty">List</span>[<span class="ty">A</span>], <span class="fn">element</span><span class="op">:</span> <span class="ty">A</span>)<span class="op">:</span> <span class="ty">List</span>[<span class="ty">A</span>]</code></pre>
+<div class="doc"><p>A new list holding every element of <code>list</code> followed by <code>element</code>. <code>list</code> itself is unchanged.</p>
+</div>
+</section><section class="item item-value" id="value-empty-5c2854d">
+<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-empty-5c2854d">empty</a></h2><span class="badges"><span class="badge badge-abstract">abstract</span></span></div>
+<pre class="sig"><code><span class="kw">def</span> <span class="fn">empty</span>[<span class="ty">A</span>]<span class="op">:</span> <span class="ty">List</span>[<span class="ty">A</span>]</code></pre>
+<div class="doc"><p>The empty list.</p>
+</div>
+</section><section class="item item-value" id="value-foldLeft-117c37a8">
+<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-foldLeft-117c37a8">foldLeft</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on jvm">jvm</span></span></div>
+<pre class="sig"><code><span class="kw">def</span> <span class="fn">foldLeft</span>[<span class="ty">A</span>, <span class="ty">B</span>](<span class="fn">initial</span><span class="op">:</span> <span class="ty">B</span>, <span class="fn">combine</span><span class="op">:</span> <span class="ty">Function</span>[<span class="ty">A</span>, <span class="ty">Function</span>[<span class="ty">B</span>, <span class="ty">B</span>]], <span class="fn">list</span><span class="op">:</span> <span class="ty">List</span>[<span class="ty">A</span>])<span class="op">:</span> <span class="ty">B</span></code></pre>
+<div class="doc"><p>Reduce <code>list</code> to a single value: starting from <code>initial</code>, combine each element into the accumulator from front to back — <code>append(append(empty, a), b).foldLeft(z, combine)</code> is <code>combine(b)(combine(a)(z))</code>.</p>
+<p><code>list</code> is the last parameter, so this dot-chains as <code>list.foldLeft(initial, combine)</code>. <code>combine</code> is curried: it takes an element, then the accumulator, and yields the next accumulator.</p>
+</div>
+</section><section class="item item-value" id="value-foreach-d79b624a">
+<div class="item-head"><span class="chip chip-value">def</span><h2 class="item-name"><a href="#value-foreach-d79b624a">foreach</a></h2><span class="badges"><span class="badge badge-impl" title="implemented on stdlib">stdlib</span></span></div>
+<pre class="sig"><code><span class="kw">def</span> <span class="fn">foreach</span>[<span class="ty">A</span>](<span class="fn">action</span><span class="op">:</span> <span class="ty">A</span> <span class="op">=&gt;</span> {<span class="ty">Effect</span>} <span class="ty">Unit</span>, <span class="fn">list</span><span class="op">:</span> <span class="ty">List</span>[<span class="ty">A</span>])<span class="op">:</span> {<span class="ty">Effect</span>} <span class="ty">Unit</span></code></pre>
+<div class="doc"><p>Perform <code>action</code> on every element of <code>list</code> from front to back, keeping only its effects.</p>
+<p>Each element's <code>Unit</code> result is discarded — the point of <code>foreach</code> is the effects, which propagate to the caller as usual. <code>list</code> is the last parameter, so this dot-chains as <code>list.foreach(action)</code>.</p>
+<pre class="code"><code><span class="cm">// Print every line of a report, in order; the action's `Console` effect</span>
+<span class="cm">// propagates to the caller through `foreach`.</span>
+<span class="kw">def</span> <span class="fn">printReport</span>(<span class="fn">lines</span><span class="op">:</span> <span class="ty">List</span>[<span class="ty">String</span>])<span class="op">:</span> {<span class="ty">Console</span>} <span class="ty">Unit</span> <span class="op">=</span> <span class="fn">lines</span><span class="op">.</span><span class="fn">foreach</span>(<span class="fn">printLine</span>)</code></pre>
 </div>
 </section></section><footer>Generated by the Eliot apidoc backend.</footer></main>
 </div>
