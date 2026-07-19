@@ -57,9 +57,6 @@ discharges is not performed, so you don't declare it. The everyday case is `if..
 is honestly just `{Console}`:
 
 ```eliot
-import eliot.effect.Console
-import eliot.effect.Abort
-
 def demo(flag: Bool): {Console} Unit = printLine(if(flag, "ON") else "OFF")
 ```
 
@@ -72,8 +69,6 @@ When everything is discharged, the result is a plain value — usable in a compl
 with no ceremony at the boundary:
 
 ```eliot
-import eliot.effect.Abort
-
 def setting(key: String): {Abort} String = abort
 
 def sign(f: Bool): String = if(f, "+") else "-"
@@ -110,8 +105,7 @@ handles it is a *handler*. Spell the parameter as a
 on `G`:
 
 ```eliot
-import eliot.effect.Effect
-import eliot.effect.Throw
+import eliot.carrier.Effect
 
 def orZero[G[_] ~ Effect](computation: {Throw[String] | G} Int): G[Int] =
    computation catch (_ -> 0)

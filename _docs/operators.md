@@ -17,8 +17,6 @@ Give a `def` a symbolic name and declare its fixity, and you have an infix opera
 of `Operators.els`:
 
 ```eliot
-import eliot.effect.Console
-
 def main: {Console} Unit = printLine(content(Cell("Hello") | Cell("World") | Cell("!")))
 
 data Cell(content: String)
@@ -85,8 +83,6 @@ operator is declared).
 Fixity isn't limited to symbols — an ordinary name can be infix too. From `HandleWith.els`:
 
 ```eliot
-import eliot.effect.Console
-
 infix def or(s1: String, s2: String): String = s1
 
 def main: {Console} Unit = printLine(something(Else) or greet(Goodbye))

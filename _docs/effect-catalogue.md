@@ -22,8 +22,9 @@ The one-table view, before the details:
 | `{Dep[X]}` | `dependency` (type-dispatched read) | `provide(value, computation)` | yes |
 | `{Inf}` | `forever(step)` | never discharged — may reach `main` | no |
 
-Every effect is **import-required** — none is ambient. `import eliot.effect.Throw` brings the whole
-kit for that effect: the operation (`raise`), the dischargers (`catch`, `runThrow`), everything.
+Every effect is **ambient** — the whole `eliot.effect` package is auto-imported, operations and
+dischargers included, so none of the code below needs an import line. Only the carrier machinery
+(`Effect`/`Suspend`, in `eliot.carrier`) is import-required, and it belongs to library authors.
 
 The last column is about [pinned rows]({{ '/docs/effects/' | relative_url }}#storing-effectful-values-data-and-pinned-rows):
 the four *control* effects have a pure meaning, so they can appear in a stored row
@@ -33,8 +34,6 @@ store.
 ## `Console` — talk to the outside
 
 ```eliot
-import eliot.effect.Console
-
 def echo: {Console} Unit = printLine(readLine)
 ```
 
@@ -46,8 +45,6 @@ print).
 ## `Log` — diagnostics
 
 ```eliot
-import eliot.effect.Log
-
 def audit(action: String): {Log} Unit = log(action)
 ```
 
@@ -58,8 +55,6 @@ Prefer `Log` over `printLine` for anything that isn't the program's actual outpu
 ## `Abort` — fail without a reason
 
 ```eliot
-import eliot.effect.Abort
-
 def lookupConfig(key: String): {Abort} String = abort
 ```
 
@@ -79,8 +74,6 @@ is an `{Abort}` expression, and adding the `else` discharges it (see
 ## `Throw[E]` — fail with a typed error
 
 ```eliot
-import eliot.effect.Throw
-
 def parse(raw: String): {Throw[ParseError]} Config = raise(ParseError("unexpected token"))
 ```
 
@@ -102,8 +95,6 @@ should recover differently per case.
 ## `State[S]` — a threaded mutable cell
 
 ```eliot
-import eliot.effect.State
-
 def swap(next: String): {State[String]} String = {
    val old = state
    putState(next)
@@ -121,8 +112,6 @@ result, `runStateToFinalState` only the state.
 ## `Dep[X]` — an injected dependency
 
 ```eliot
-import eliot.effect.Dep
-
 data Database(url: String)
 
 def describe: {Dep[Database], Console} Unit = printLine(dependency.url)
@@ -136,8 +125,6 @@ injection at the discharge site, one nested `provide` per dependency type.
 ## `Inf` — deliberately forever
 
 ```eliot
-import eliot.effect.Inf
-
 def serve: {Console, Inf} Unit = forever(printLine(readLine))
 ```
 

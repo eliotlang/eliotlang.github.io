@@ -28,8 +28,6 @@ there's nothing else to install.
 Here is the whole program — it lives at `examples/src/HelloWorld.els`:
 
 ```eliot
-import eliot.effect.Console
-
 def main: {Console} Unit = printLine("Hello World!")
 ```
 
@@ -55,15 +53,13 @@ throughout this guide, just changing the module name after `-m`. It reads: *comp
 Two lines, and every part is worth naming.
 
 ```eliot
-import eliot.effect.Console
-
 def main: {Console} Unit = printLine("Hello World!")
 ```
 
-- **`import eliot.effect.Console`** brings in the `Console` effect — the capability to read and
-  print lines. `printLine` comes from it. Almost everything in Eliot must be imported; only a
-  handful of core names (like `Int`, `String`, `Unit`) are available without one. We'll cover
-  imports properly in [Modules & imports]({{ '/docs/modules/' | relative_url }}).
+- **`printLine`** comes from the `Console` *effect*. Core names — the `eliot.lang` basics like
+  `Int`, `String`, `Unit`, and the whole `eliot.effect` vocabulary — are ambient; everything else
+  is imported explicitly. We'll cover imports properly in
+  [Modules & imports]({{ '/docs/modules/' | relative_url }}).
 
 - **`def main`** declares the program's entry point. `def` introduces a *named value* — the closest
   thing Eliot has to a "function" or a top-level binding. We'll unpack `def` in the very next

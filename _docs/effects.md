@@ -17,8 +17,6 @@ A function that does something beyond computing its result says so in its signat
 before the value type:
 
 ```eliot
-import eliot.effect.Console
-
 def shout(message: String): {Console} Unit = printLine(message)
 ```
 
@@ -30,8 +28,9 @@ an **effect row** — a *set* of effects, so a function that logs and may fail i
   wrapped `IO[Unit]`. There is no `IO` in application code at all.
 - The row is **unordered**: `{Log, Throw[String]}` and `{Throw[String], Log}` are the same type.
 
-Effects are imported from `eliot.effect` — they are not ambient, so a file says which ones it talks
-about.
+The effect vocabulary is **ambient**: the whole `eliot.effect` package is auto-imported, so
+`printLine`, `raise`, `catch`, and friends need no import line. (A local declaration of the same
+name silently wins — an ambient name can always be reclaimed.)
 
 ## Direct style: no plumbing
 
@@ -40,8 +39,6 @@ Inside an effectful function you just *call things*. An effectful call yields it
 is inserted by the compiler. You never write `flatMap`, `await`, or `<-`:
 
 ```eliot
-import eliot.effect.Console
-
 def echo: {Console} Unit = printLine(readLine)
 
 def greetTwice: {Console} Unit = {
@@ -67,8 +64,6 @@ dependency — that effect drops out of its row automatically; that's the subjec
 `Throw[E]` is the typed-error effect: `raise(err)` stops the computation with an error value.
 
 ```eliot
-import eliot.effect.Throw
-
 def parsePort(config: String): {Throw[String]} Port = raise("no port in configuration")
 ```
 
@@ -95,8 +90,6 @@ turning a `{Throw[E]} A` computation into an `Either[E, A]`. Every effect has su
 `main` is an ordinary effectful function; the platform runs whatever its row declares:
 
 ```eliot
-import eliot.effect.Console
-
 def main: {Console} Unit = printLine("Hello World!")
 ```
 
@@ -121,7 +114,6 @@ one concrete representation the field can hold. You commit by **pinning** the ro
 after `|`:
 
 ```eliot
-import eliot.effect.Throw
 import eliot.lang.Id
 
 data AssertionError(message: String)

@@ -17,8 +17,6 @@ The two-armed eliminator for `Bool` is `fold`. It takes a condition and two arms
 them:
 
 ```eliot
-import eliot.effect.Console
-
 def label(active: Bool): String = fold(active, "ON", "OFF")
 
 def main: {Console} Unit = printLine(label(true))
@@ -44,9 +42,6 @@ on top of it — that's what you'll reach for almost every time.
 naturally:
 
 ```eliot
-import eliot.effect.Console
-import eliot.effect.Abort
-
 def classify(n: Int): {Console} Unit =
   printLine(if(n > 0) "positive" else if(n < 0) "negative" else "zero")
 
@@ -56,12 +51,12 @@ def main: {Console} Unit = classify(42)
 This prints `positive`. `else` binds **right-associatively**, so `if … else if … else …` chains nest
 exactly the way you'd expect.
 
-> **Why the `import eliot.effect.Abort`?** A bare `if` that doesn't match its condition short-circuits
-> using the `Abort` effect, and the infix `else` is what *discharges* that effect by providing the
-> fallback — so using `if..else` means importing `else` from `eliot.effect.Abort`. When an `if..else`
-> is complete, the `Abort` is fully handled and never appears in your function's type: `classify` above
-> declares only `{Console}`. This is your first taste of introducing an effect and then discharging
-> it; the [Effects]({{ '/docs/effects/' | relative_url }}) part makes it precise.
+> **What's under the hood?** A bare `if` that doesn't match its condition short-circuits using the
+> (ambient) `Abort` effect, and the infix `else` is what *discharges* that effect by providing the
+> fallback. When an `if..else` is complete, the `Abort` is fully handled and never appears in your
+> function's type: `classify` above declares only `{Console}`. This is your first taste of
+> introducing an effect and then discharging it; the
+> [Effects]({{ '/docs/effects/' | relative_url }}) part makes it precise.
 {: .note}
 
 ## Pure or effectful, it's the same `if..else`

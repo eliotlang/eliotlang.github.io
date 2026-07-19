@@ -16,10 +16,6 @@ explicit rather than baking it into a transformer stack.
 Using several effects together needs no ceremony — declare the union, call things:
 
 ```eliot
-import eliot.effect.Log
-import eliot.effect.Dep
-import eliot.effect.Console
-
 data Database(url: String)
 
 def run: {Dep[Database], Log, Console} Unit = {
@@ -48,9 +44,6 @@ providing a `Dep`, same result. The interesting case is effects that *interact* 
 `State` with a failure effect. Consider one program that modifies state and then aborts:
 
 ```eliot
-import eliot.effect.State
-import eliot.effect.Abort
-
 def reject(value: String): {Abort} String = abort
 
 def modifyThenAbort: {State[String], Abort} String = {

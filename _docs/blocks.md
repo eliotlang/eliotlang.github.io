@@ -48,8 +48,6 @@ it is performed, and its result is discarded. For a pure value that's pointless,
 the structure):
 
 ```eliot
-import eliot.effect.Console
-
 def announce(name: String): {Console} Unit = {
   printLine("starting up")     // a bare statement: performed, result discarded
   val greeting = greet(name)   // a val: result bound for later use

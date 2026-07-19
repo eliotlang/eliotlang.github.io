@@ -19,7 +19,7 @@ and what's ambient versus import-required — removes most "unknown name" surpri
 
 - **File = module**: `eliot/lang/String.els` is the module `eliot.lang.String`; declarations may appear
   in any order.
-- **Imports**: `import eliot.effect.Console` — dotted lowercase packages plus one Uppercase module
+- **Imports**: `import eliot.collection.List` — dotted lowercase packages plus one Uppercase module
   name, bringing in every name that module declares.
 - **The auto-imported prelude**: the *entire* `eliot.lang` package is ambient in every file — `Bool`,
   `Option`, `Pair`, `Either`, `Int`, `Interval`, `Numeric`, `Show`, `String`, and the rest — so you use

@@ -36,8 +36,6 @@ Compare the two spellings. The nested form `g(b, f(a, subject))` reads inside-ou
 `subject`, apply `f(a)`, then `g(b)`. Here is the real example, `DotOperator.els`:
 
 ```eliot
-import eliot.effect.Console
-
 data Box[A](content: A)
 
 def filter[A](expr: String, box: Box[A]): Box[A] = box

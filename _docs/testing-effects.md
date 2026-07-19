@@ -16,8 +16,6 @@ testable.
 Business logic written against effects never says how they run:
 
 ```eliot
-import eliot.effect.Abort
-
 def allowed: {Abort} String = "granted"
 def denied: {Abort} String = abort
 ```
@@ -36,8 +34,6 @@ The same works for every control effect: `runThrow` materialises failures as an 
 `runStateToPair` runs stateful logic from a chosen initial state:
 
 ```eliot
-import eliot.effect.State
-
 def swap(next: String): {State[String]} String = {
    val old = state
    putState(next)
@@ -86,7 +82,6 @@ loop. That is a stored effectful computation, which is exactly what
 are for:
 
 ```eliot
-import eliot.effect.Throw
 import eliot.lang.Id
 
 data AssertionError(message: String)

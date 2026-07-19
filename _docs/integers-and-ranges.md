@@ -33,8 +33,6 @@ Because the compiler knows each operand's range, it knows the result's range too
 **combines** ranges rather than wrapping around a fixed width. Here is the whole of `Arithmetic.els`:
 
 ```eliot
-import eliot.effect.Console
-
 def main: {Console} Unit = printLine(show(2 + 3 * 4))
 ```
 
@@ -54,8 +52,6 @@ This prints `14`. Two things are on display:
 Ranges flow through longer computations too. From `Ranges.els`:
 
 ```eliot
-import eliot.effect.Console
-
 def count: Int = 7
 
 def total: Int = count + count + count

@@ -57,8 +57,6 @@ constructor apart from a variable, which matters a great deal in `match`.
 You inspect a `data` value by matching on its constructors:
 
 ```eliot
-import eliot.effect.Console
-
 data Maybe[A] = Nothing | Just(value: A)
 
 def describe(m: Maybe[String]): String = m match {

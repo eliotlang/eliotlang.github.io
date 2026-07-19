@@ -24,8 +24,6 @@ application). Consume one with `foldOption`, supplying a value for the absent ca
 the present case:
 
 ```eliot
-import eliot.effect.Console
-
 def greeting(name: Option[String]): String = foldOption(name, "hello, stranger", n -> n)
 
 def main: {Console} Unit = {
@@ -54,8 +52,6 @@ data Pair[A, B](first: A, second: B)
 You build one with `Pair(a, b)` and read the parts back with the `.first` and `.second` accessors:
 
 ```eliot
-import eliot.effect.Console
-
 def dimensions: Pair[Int, Int] = Pair(640, 480)
 
 def main: {Console} Unit = {
