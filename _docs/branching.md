@@ -21,7 +21,7 @@ import eliot.effect.Console
 
 def label(active: Bool): String = fold(active, "ON", "OFF")
 
-def main: IO[Unit] = printLine(label(true))
+def main: {Console} Unit = printLine(label(true))
 ```
 
 This prints `ON`. `fold` is part of the auto-imported prelude, so it needs no import. Two things to
@@ -50,7 +50,7 @@ import eliot.effect.Abort
 def classify(n: Int): {Console} Unit =
   printLine(if(n > 0) "positive" else if(n < 0) "negative" else "zero")
 
-def main: IO[Unit] = classify(42)
+def main: {Console} Unit = classify(42)
 ```
 
 This prints `positive`. `else` binds **right-associatively**, so `if … else if … else …` chains nest

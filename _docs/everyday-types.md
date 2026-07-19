@@ -28,7 +28,7 @@ import eliot.effect.Console
 
 def greeting(name: Option[String]): String = foldOption(name, "hello, stranger", n -> n)
 
-def main: IO[Unit] = {
+def main: {Console} Unit = {
   printLine(greeting(Some("Ada")))
   printLine(greeting(None))
 }
@@ -58,7 +58,7 @@ import eliot.effect.Console
 
 def dimensions: Pair[Int, Int] = Pair(640, 480)
 
-def main: IO[Unit] = {
+def main: {Console} Unit = {
   printLine(show(dimensions.first))
   printLine(show(dimensions.second))
 }
@@ -107,7 +107,7 @@ literals. When you need to assemble text, build the pieces and print them, or `s
 
 `Unit` is the "no interesting value" type — one type, one value, `unit`. It's what an effectful action
 returns when it's performed for its effect rather than its result, which is why `main` is
-`IO[Unit]` and why a `printLine` yields `Unit`.
+`{Console} Unit` and why a `printLine` yields `Unit`.
 
 ## The pattern to notice
 

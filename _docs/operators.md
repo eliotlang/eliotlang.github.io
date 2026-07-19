@@ -19,7 +19,7 @@ of `Operators.els`:
 ```eliot
 import eliot.effect.Console
 
-def main: IO[Unit] = printLine(content(Cell("Hello") | Cell("World") | Cell("!")))
+def main: {Console} Unit = printLine(content(Cell("Hello") | Cell("World") | Cell("!")))
 
 data Cell(content: String)
 
@@ -89,7 +89,7 @@ import eliot.effect.Console
 
 infix def or(s1: String, s2: String): String = s1
 
-def main: IO[Unit] = printLine(something(Else) or greet(Goodbye))
+def main: {Console} Unit = printLine(something(Else) or greet(Goodbye))
 ```
 
 `or` reads as an infix word between its operands. You've already been using prelude examples of this:

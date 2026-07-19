@@ -50,7 +50,7 @@ def as[A, B](b: B, box: Box[A]): Box[B] = box.map(_ -> b)
 
 def logic: Box[String] = Box("Hello").filter("Expr").map(_ -> "Earth!").as("World!")
 
-def main: IO[Unit] = printLine(logic.content)
+def main: {Console} Unit = printLine(logic.content)
 ```
 
 Notice `box.content` inside the definitions — field access is the same operator; `content` is just the

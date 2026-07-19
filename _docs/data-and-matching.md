@@ -66,7 +66,7 @@ def describe(m: Maybe[String]): String = m match {
   case Just(v) -> v
 }
 
-def main: IO[Unit] = printLine(describe(Just("hello")))
+def main: {Console} Unit = printLine(describe(Just("hello")))
 ```
 
 This prints `hello`. Each `case` is a **pattern** followed by `->` and a result. The patterns you can

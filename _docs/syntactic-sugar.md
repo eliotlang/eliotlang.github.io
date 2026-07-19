@@ -21,6 +21,9 @@ once.
 - **Effect rows**: `{E1, E2} A` desugars to one shared inferable carrier —
   `[auto F[_] ~ E1 & E2] F[A]` — which is why the value type inside a row is plain (`Unit`, not
   `IO[Unit]`), and why several `{…}` occurrences in one signature collapse onto the same carrier.
+- **Pinned rows**: `{Throw[E] | Id} A` desugars to the canonical carrier stack
+  (`ThrowCarrier[E, Id, A]`, by the `<Ability>Carrier` naming convention) — a concrete type, no
+  carrier generic introduced.
 - **Blocks**: a `{ … }` block lowers to a tower of immediately-applied lambdas, which is where
   automatic effect sequencing comes from.
 - **The dot operator**: `a.f(b)` is `f(b, a)`, via the infix `.` defined `below apply`.
