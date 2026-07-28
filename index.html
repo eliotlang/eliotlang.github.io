@@ -42,14 +42,12 @@ description: >-
         <span class="code__file">WherePrecondition.els</span>
         <button class="code__copy" type="button" data-copy>copy</button>
       </div>
-<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
-
-<span class="t-com">// `where` proves x's range fits a byte —</span>
+<pre><code><span class="t-com">// `where` proves x's range fits a byte —</span>
 <span class="t-com">// the compiler checks it at every call site.</span>
 <span class="t-kw">def</span> asByte(x: <span class="t-ty">Int</span>): <span class="t-ty">Int</span> <span class="t-kw">where</span> withinByte(range(x)) = x
 
-<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] =
-  printLine(intToString(asByte(<span class="t-num">100</span>)))
+<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> =
+  printLine(show(asByte(<span class="t-num">100</span>)))
 </code></pre>
     </div>
     <div class="term">
@@ -122,15 +120,13 @@ description: >-
         <span class="code__file">EffectsThrow.els</span>
         <button class="code__copy" type="button" data-copy>copy</button>
       </div>
-<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Throw</span>
-
-<span class="t-com">// A parser that fails with a typed error on bad input.</span>
+<pre><code><span class="t-com">// A parser that fails with a typed error on bad input.</span>
 <span class="t-kw">def</span> parseOk:  {<span class="t-ty">Throw</span>[<span class="t-ty">String</span>]} <span class="t-ty">String</span> = <span class="t-str">"parsed-value"</span>
 <span class="t-kw">def</span> parseBad: {<span class="t-ty">Throw</span>[<span class="t-ty">String</span>]} <span class="t-ty">String</span> = raise(<span class="t-str">"malformed input"</span>)
 
 <span class="t-com">// `catch` discharges {Throw[String]} in one step —</span>
 <span class="t-com">// no Either, no transformer, no ThrowCarrier in sight.</span>
-<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] = {
+<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = {
   printLine(parseOk  <span class="t-kw">catch</span> (err -&gt; err))
   printLine(parseBad <span class="t-kw">catch</span> (err -&gt; err))
 }
@@ -138,7 +134,7 @@ description: >-
     </div>
     <div class="showcase__note">
       <span class="badge badge--pass"><span class="badge__dot"></span>statically checked</span>
-      <p><code>raise</code> and <code>catch</code> arrive from a single import. <code>catch</code> recovers a typed failure to a value of the same type, and once discharged the effect leaves the signature — the residual carrier becomes plain <code>IO</code>.</p>
+      <p><code>raise</code> and <code>catch</code> need no import — the effect vocabulary is ambient. <code>catch</code> recovers a typed failure to a value of the same type, and once discharged the effect leaves the signature: <code>main</code> declares only what is left.</p>
     </div>
   </div>
 
@@ -150,16 +146,14 @@ description: >-
         <span class="code__file">Match.els</span>
         <button class="code__copy" type="button" data-copy>copy</button>
       </div>
-<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
-
-<span class="t-kw">data</span> <span class="t-ty">Maybe</span>[A] = <span class="t-ty">Nothing</span> | <span class="t-ty">Just</span>(value: A)
+<pre><code><span class="t-kw">data</span> <span class="t-ty">Maybe</span>[A] = <span class="t-ty">Nothing</span> | <span class="t-ty">Just</span>(value: A)
 
 <span class="t-kw">def</span> describe(m: <span class="t-ty">Maybe</span>[<span class="t-ty">String</span>]): <span class="t-ty">String</span> = m <span class="t-kw">match</span> {
   <span class="t-kw">case</span> <span class="t-ty">Nothing</span> -&gt; <span class="t-str">"empty"</span>
   <span class="t-kw">case</span> <span class="t-ty">Just</span>(v) -&gt; v
 }
 
-<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] = printLine(describe(<span class="t-ty">Just</span>(<span class="t-str">"hello"</span>)))
+<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = printLine(describe(<span class="t-ty">Just</span>(<span class="t-str">"hello"</span>)))
 </code></pre>
     </div>
     <div class="showcase__note">
@@ -176,16 +170,13 @@ description: >-
         <span class="code__file">Ranges.els</span>
         <button class="code__copy" type="button" data-copy>copy</button>
       </div>
-<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
-<span class="t-kw">import</span> eliot.lang.<span class="t-ty">Numeric</span>
-
-<span class="t-com">// One integer type. A value's range is meta-information</span>
+<pre><code><span class="t-com">// One integer type. A value's range is meta-information</span>
 <span class="t-com">// in the compiler, not a separate Int8 / Int16 / ...</span>
 <span class="t-kw">def</span> count: <span class="t-ty">UnsignedByte</span> = <span class="t-num">7</span>        <span class="t-com">// UnsignedByte is an alias for Int</span>
 
 <span class="t-kw">def</span> total: <span class="t-ty">Int</span> = count + count + count   <span class="t-com">// 21</span>
 
-<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] = printLine(intToString(total))
+<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = printLine(show(total))
 </code></pre>
     </div>
     <div class="showcase__note">
@@ -224,11 +215,7 @@ description: >-
           <span class="code__file">EffectsMulti.els</span>
           <button class="code__copy" type="button" data-copy>copy</button>
         </div>
-<pre><code><span class="t-kw">import</span> eliot.effect.<span class="t-ty">Dep</span>
-<span class="t-kw">import</span> eliot.effect.<span class="t-ty">Log</span>
-<span class="t-kw">import</span> eliot.effect.<span class="t-ty">Console</span>
-
-<span class="t-kw">data</span> <span class="t-ty">Database</span>(url: <span class="t-ty">String</span>)
+<pre><code><span class="t-kw">data</span> <span class="t-ty">Database</span>(url: <span class="t-ty">String</span>)
 
 <span class="t-com">// Three effects at once, in direct style.</span>
 <span class="t-kw">def</span> run: {<span class="t-ty">Dep</span>[<span class="t-ty">Database</span>], <span class="t-ty">Log</span>, <span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = {
@@ -236,9 +223,9 @@ description: >-
   printLine(readLine)
 }
 
-<span class="t-com">// Injected at the discharge site; residual carrier is IO.</span>
-<span class="t-kw">def</span> main: <span class="t-ty">IO</span>[<span class="t-ty">Unit</span>] =
-  run.provide(<span class="t-ty">Database</span>(<span class="t-str">"jdbc://app-db"</span>))
+<span class="t-com">// Injected at the discharge site.</span>
+<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>, <span class="t-ty">Log</span>} <span class="t-ty">Unit</span> =
+  provide(<span class="t-ty">Database</span>(<span class="t-str">"jdbc://app-db"</span>), run)
 </code></pre>
       </div>
       <div class="term">

@@ -1,7 +1,7 @@
 ---
 title: Layers and platform independence
 nav_title: Layers
-order: 22
+order: 24
 part: In the large
 stub: true
 summary: How an abstract, platform-neutral base is merged with concrete platform layers — the model that lets one program target the JVM and a microcontroller.

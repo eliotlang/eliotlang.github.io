@@ -1,7 +1,7 @@
 ---
 title: Syntactic sugar, end to end
 nav_title: Syntactic sugar
-order: 23
+order: 25
 part: In the large
 stub: true
 summary: The desugarings that make Eliot read the way it does — effect rows, blocks, the dot, if..else, lambdas, and integer literals.
@@ -26,6 +26,10 @@ once.
   carrier generic introduced.
 - **Blocks**: a `{ … }` block lowers to a tower of immediately-applied lambdas, which is where
   automatic effect sequencing comes from.
+- **Direct style**: before type checking, a dedicated phase rewrites each definition into explicit
+  monadic code — inserting the `flatMap` chains, writing the carrier at every effectful call, and
+  choosing the identity carrier at a pure boundary. It is a *desugaring*, driven only by the
+  declarations in scope, which is why evaluation order is readable from signatures.
 - **The dot operator**: `a.f(b)` is `f(b, a)`, via the infix `.` defined `below apply`.
 - **`if..else`**: `if(cond, v)` is `fold(cond, v, abort)`, and `else` discharges the `Abort` — control
   flow built from a plain eliminator and an effect.

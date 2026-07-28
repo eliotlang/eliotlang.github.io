@@ -3,7 +3,7 @@ title: Effects in direct style
 nav_title: Effects, direct style
 order: 16
 part: Effects
-summary: Effect rows and direct style for everyday code, storing effectful values in data with pinned rows, and the carrier model underneath.
+summary: What an effect is, how an effect row becomes part of a function's type, and why effectful code still reads like ordinary straight-line code.
 ---
 
 Eliot's algebraic effects let you say what a function *may do* — print, fail, read state — as an
@@ -11,32 +11,58 @@ unordered set in its type, while writing the code in ordinary direct style. This
 language that feels most different, and most freeing.
 {: .docs-lead}
 
-## An effect is part of the type
+This part of the guide builds the picture in pieces. This chapter answers the first two questions:
+**what is an effect**, and **what does declaring one change about your code**. Nothing here requires
+you to know how it works underneath — that comes later, and by then it will look inevitable.
 
-A function that does something beyond computing its result says so in its signature, in braces
-before the value type:
+## What an effect is
+
+In most languages, what a function does *besides* returning its result is invisible in its type.
+`parseConfig(text)` might read a file, print a warning, throw, or block for a second — the signature
+says only that a `String` goes in and a `Config` comes out. You find out by reading the
+implementation, and then by reading everything it calls.
+
+An **effect** in Eliot is a named set of operations that code may perform: `Console` has
+`printLine` and `readLine`, `Throw[E]` has `raise`, `State[S]` has `state` and `putState`. A
+function's signature lists the effects it may use. That list is called its **effect row**:
 
 ```eliot
 def shout(message: String): {Console} Unit = printLine(message)
 ```
 
-`{Console} Unit` reads "produces a `Unit`, and may use the console along the way". The braces hold
-an **effect row** — a *set* of effects, so a function that logs and may fail is
-`{Log, Throw[String]} Configuration`. Two things to notice right away:
+`{Console} Unit` reads: *"produces a `Unit`, and may use the console along the way."*
 
-- The value type inside the row is the **plain** type — `Unit`, `String`, `Configuration` — never a
-  wrapped `IO[Unit]`. There is no `IO` in application code at all.
-- The row is **unordered**: `{Log, Throw[String]}` and `{Throw[String], Log}` are the same type.
+Three properties make a row different from the mechanisms you may be comparing it to:
 
-The effect vocabulary is **ambient**: the whole `eliot.effect` package is auto-imported, so
-`printLine`, `raise`, `catch`, and friends need no import line. (A local declaration of the same
-name silently wins — an ambient name can always be reclaimed.)
+- **It is a set, not a sequence.** `{Log, Throw[String]}` and `{Throw[String], Log}` are the same
+  type. Nothing about ordering or nesting is fixed by the row.
+- **It sits beside the value type, not around it.** The result type inside the braces is the
+  **plain** type — `Unit`, `String`, `Config` — never a wrapped `IO[Unit]` or `Future[Config]`.
+  There is no wrapper type in application code at all, so nothing has to be unwrapped, mapped over,
+  or awaited.
+- **It covers every kind of effect**, not just failure: I/O, errors, state, dependencies, and even
+  non-termination all use the same mechanism, so they compose with each other the same way.
+
+An effect is not magic control flow. Each one is an ordinary
+[ability]({{ '/docs/abilities/' | relative_url }}) — an interface a platform implements — and the
+row is the compiler's record of which abilities a body needs. That is why user code can define new
+effects with no compiler support.
+
+## The vocabulary is already in scope
+
+The whole `eliot.effect` package is **ambient**: it is auto-imported into every module, so
+`printLine`, `raise`, `catch`, `state` and friends need no import line. A local declaration of the
+same name silently wins over the ambient one, so a name you want back is always yours to reclaim.
+
+Only the machinery underneath the effects — the `eliot.carrier` package — is import-required, and
+that is deliberate: application code never needs it. You will see it once, much later, when writing
+your own effect-generic library function.
 
 ## Direct style: no plumbing
 
-Inside an effectful function you just *call things*. An effectful call yields its plain value —
-`readLine` is a `String` where you use it — and sequencing through blocks, arguments, and dot chains
-is inserted by the compiler. You never write `flatMap`, `await`, or `<-`:
+Inside an effectful function you just *call things*. An effectful call yields its plain value:
+`readLine` **is** a `String` where you write it. Sequencing through blocks, arguments, and dot
+chains is inserted by the compiler.
 
 ```eliot
 def echo: {Console} Unit = printLine(readLine)
@@ -47,43 +73,84 @@ def greetTwice: {Console} Unit = {
 }
 ```
 
+You never write `flatMap`, `await`, `?`, or `<-`. A `val` binds the *result* of an effectful step,
+exactly as it binds a pure one:
+
+```eliot
+def greetByName: {Console} Unit = {
+   printLine("What is your name?")
+   val name = readLine
+   printLine(name)
+}
+```
+
+The compiler rewrites this into explicit sequencing before type checking — the same code you would
+have written by hand in a language with a monadic I/O type. The difference is that you did not have
+to, and the resulting program is the same either way.
+
+> **The rewrite is driven by signatures, not by guesswork.** Everything the compiler needs to know
+> about how a call is sequenced is written in the declarations it can see. That is why the next
+> chapter, [When effects run]({{ '/docs/effect-evaluation/' | relative_url }}), is about *reading*
+> those declarations: once you can, the evaluation order of any expression is something you can see
+> rather than infer.
+{: .note}
+
+## Effects float up
+
+If your function calls something that may use the console, then your function may use the console.
+Effects propagate to callers automatically:
+
+```eliot
+def name: {Console} String = readLine
+
+def greet: {Console} Unit = printLine(name)
+```
+
+`greet` performs `Console` because `name` does. Nothing was passed, injected, or threaded — the row
+of a body is simply the union of the rows of what it calls.
+
 ## The one rule: used must be declared
 
-A body may perform only the effects its signature declares. Effects *float up*: calling
-`{Console}` code makes *your* function `{Console}` too, and the compiler checks the sum. A
-function declared without a row is **pure**, and performing an effect in it is a compile error
-("performs the effect 'Console' but does not declare it"). Declaring an effect you don't use is
-fine — a row is a "may", not a "must".
-
-And when a function fully *handles* an effect inside its body — recovers the failure, supplies the
-dependency — that effect drops out of its row automatically; that's the subject of
-[Discharging effects]({{ '/docs/discharging-effects/' | relative_url }}).
-
-## Failing, recovering — a first discharge
-
-`Throw[E]` is the typed-error effect: `raise(err)` stops the computation with an error value.
+A body may perform only the effects its signature declares. The compiler adds up what a body
+actually does and checks it against the row:
 
 ```eliot
-def parsePort(config: String): {Throw[String]} Port = raise("no port in configuration")
+def leaky: Unit = printLine("oops")
 ```
 
-The caller can let the effect keep floating up — or **discharge** it, handling the failure so
-`Throw` disappears from its own row:
+```text
+error: This value performs the effect 'Console' but does not declare it;
+       add it to its { ... } effect set.
+```
+
+Two consequences worth internalising:
+
+- **A function with no row is genuinely pure.** Not "pure by convention" — it provably performs no
+  effect, because any effect it performed would have to appear in its row.
+- **A row is a "may", not a "must".** Declaring `{Console}` and never printing is fine. The check is
+  one-directional: everything you do must be declared, not the other way around.
+
+This is checked twice, and both checks speak the same language: once per definition, as soon as
+your signature and the signatures you call are known, and once more after the whole program is
+assembled, on every concrete instantiation. The second check is a fail-safe — an undeclared effect
+stops code generation, it never merely warns.
+
+## Where effects end
+
+An effect declared in a signature has to be *handled* somewhere. When a function fully handles an
+effect inside its body — recovers the failure, supplies the dependency, runs the state from an
+initial value — that effect **drops out of its row**:
 
 ```eliot
-def port(config: String): Port = parsePort(config) catch (err -> defaultPort)
+def parsePort(config: String): {Throw[String]} String = raise("no port in configuration")
+
+def port(config: String): String = parsePort(config) catch (err -> "8080")
 ```
 
-`catch` reads like an exception handler; `runThrow` instead materialises the outcome as data,
-turning a `{Throw[E]} A` computation into an `Either[E, A]`. Every effect has such dischargers —
-`else` for `Abort`, `runStateToPair` for `State`, `provide` for `Dep` — see the
-[effect catalogue]({{ '/docs/effect-catalogue/' | relative_url }}).
-
-> **A discharger wraps the computation expression** — pass the effectful call to it *directly*, as
-> in `parsePort(config) catch (…)`. Don't bind the call to a `val` first and discharge the binder:
-> the `val` already sequenced the effect away, and the discharger will complain it got a plain
-> value.
-{: .warn}
+`parsePort` may fail; `port` cannot, and its signature says so with no row at all. That is
+**discharge**, and it is how effects end — the row only ever lists what *escapes*. Every effect has
+at least one discharger, and they get their own
+[chapter]({{ '/docs/discharging-effects/' | relative_url }}).
 
 ## `main` — where effects meet the platform
 
@@ -93,142 +160,31 @@ turning a `{Throw[E]} A` computation into an `Either[E, A]`. Every effect has su
 def main: {Console} Unit = printLine("Hello World!")
 ```
 
-You never say *how* `Console` is performed — the target you compile for (the JVM today, a
-microcontroller tomorrow) supplies that when it runs `main`. This is also why business logic stays
-portable and testable: the same `{Console, Throw[String]}` function can be run by the platform, or
-handled purely in a test.
+You never say *how* `Console` is performed. The target you compile for — the JVM today, a
+microcontroller tomorrow — supplies that when it runs `main`. This is the payoff that motivates the
+whole design:
 
-## Storing effectful values: `data` and pinned rows
+- **Business logic stays portable.** A `{Console, Throw[String]}` function names no platform type,
+  so it compiles for any target that can provide those effects.
+- **Failure handling is visible.** You can see from a signature whether a call can fail, and the
+  compiler will not let you forget one.
+- **The whole program is analyzable.** Effects reaching `main` are exactly the capabilities the
+  program needs — which, on a microcontroller with no operating system to catch mistakes, is the
+  difference between a proof and a hope.
 
-So far every row sat on a *function*. Now suppose you want to **store** an effectful computation in
-a data type — a test case that runs later, a validation to apply on demand:
+## What the rest of this part covers
 
-```eliot
-data TestCase(name: String, body: {Throw[AssertionError]} Unit)
-// error: A stored effect row must be pinned to a base carrier, e.g. `{Throw[Error] | Id} String`.
-```
+- **[When effects run]({{ '/docs/effect-evaluation/' | relative_url }})** — evaluation order, and
+  the one rule that makes it readable from a signature.
+- **[The effect catalogue]({{ '/docs/effect-catalogue/' | relative_url }})** — the shipped effects,
+  their operations, and how each is discharged.
+- **[Discharging effects]({{ '/docs/discharging-effects/' | relative_url }})** — turning effectful
+  code back into plain values.
+- **[Carriers and pinned rows]({{ '/docs/carriers/' | relative_url }})** — the model underneath,
+  and how to store a computation in a `data` field.
+- **[Combining and ordering effects]({{ '/docs/combining-effects/' | relative_url }})** — what
+  happens when several effects meet.
+- **[Testing effects]({{ '/docs/testing-effects/' | relative_url }})** — running effectful logic
+  with no I/O at all.
 
-The compiler refuses, and the reason is worth understanding: a row on a function leaves *how the
-effects run* to each caller, but a stored value cannot keep that question open — it must commit to
-one concrete representation the field can hold. You commit by **pinning** the row: naming a base
-after `|`:
-
-```eliot
-import eliot.lang.Id
-
-data AssertionError(message: String)
-
-data TestCase(name: String, body: {Throw[AssertionError] | Id} Unit)
-```
-
-`Id` is the *identity* base: "nothing else". A `{Throw[AssertionError] | Id} Unit` is a stored
-computation that can raise an `AssertionError` and do **nothing else whatsoever** — it provably
-cannot print, read, or loop forever. Building one is ordinary direct style; consuming one uses the
-ordinary dischargers:
-
-```eliot
-def passing: TestCase = TestCase("does nothing", unit)
-def failing: TestCase = TestCase("always fails", raise(AssertionError("nope")))
-
-def outcome(tc: TestCase): Either[AssertionError, Unit] = runId(runThrow(body(tc)))
-```
-
-The rules for rows in `data` fields:
-
-- **A stored row must be pinned.** An open row in a field is a compile error (the one you saw
-  above).
-- **Pin with `| Id`** when the stored effects are the pure control effects — `Abort`, `Throw[E]`,
-  `State[S]`, `Dep[X]`. The platform effects (`Console`, `Log`) cannot be stored this way: they
-  have no pure meaning, so handle them *before* the value is stored.
-- **Order matters once you pin** — see the next section.
-- The data type itself stays completely ordinary — `TestCase` is not generic, and nothing about
-  carriers leaks into the code that uses it.
-
-## Under the hood: carriers
-
-You can use everything above without this section. But the model beneath is small, and knowing it
-turns the pinned-row rules from decree into consequence.
-
-Every effectful computation runs on a **carrier** — the concrete type that gives its effects
-meaning. Each effect is an [ability]({{ '/docs/abilities/' | relative_url }}) *over the carrier*:
-on the JVM, `main`'s carrier is the platform's `IO`, whose instances perform `Console` for real; in
-a test, the same code can run on a pure carrier that performs nothing. The pure control effects
-each come with a canonical carrier *layer* — `Throw[E]` with a layer that produces
-`Either[E, A]`, `State[S]` with a state-threading layer — and layers stack over a base.
-
-The two row forms are two answers to "which carrier?":
-
-- An **open row** — `{Throw[E]} A` — leaves the carrier to the caller. Each call site picks
-  (usually invisibly, by unification), which is exactly what you want on a function.
-- A **pinned row** — `{Throw[E] | Id} A` — *is* the carrier, spelled in effect vocabulary: the
-  canonical stack of the listed effects' layers over the named base. It is a concrete type like any
-  other.
-
-So the stored-row rule is not an extra restriction — it's the observation that a field needs a
-type, and an open row deliberately isn't one yet.
-
-**Order matters when you pin.** The entries are the stack, leftmost outermost, and dischargers peel
-from the outside in — so the written order *is* the discharge order, and for effects that don't
-commute it decides real behaviour:
-
-```eliot
-{Throw[E], State[S] | Id} A   // discharge Throw first: a raise discards the pending state
-{State[S], Throw[E] | Id} A   // discharge State first: the state survives even a raise
-```
-
-These are two different types; the choice is yours and visible in the source. (Open rows stay
-unordered — order only exists once you pin.)
-
-Two things can *not* appear left of a `|`, both by construction: the platform effects
-(`Console`, `Log` — they have no canonical pure layer, which is exactly why a stored `| Id` value
-can't do I/O), and negative members (`{-Abort | G}` is rejected — discharging is something a
-*function* does, not a shape a type has).
-
-One more payoff: this is the spelling the tooling speaks. Hovering an effectful value in the IDE
-shows its concrete type *as* a pinned row — `{Throw[String] | IO} String` — so the type you read
-is the type you could have written.
-
-## Advanced: generic programming against effects
-
-Library code sometimes needs to work *with* the machinery the sections above let you ignore. Three
-idioms cover nearly all of it.
-
-**Take an effectful callback.** A row is a type, usable in any type position — including an arrow
-codomain inside a parameter. All rows in one signature share one carrier, so a combinator's
-callback effects automatically become the combinator's own:
-
-```eliot
-def foreach[A](action: A => {Effect} Unit, list: List[A]): {Effect} Unit
-```
-
-`{Effect}` (just the base machinery ability) is the minimal "whatever effects the caller's action
-performs" row — `foreach` is exactly as effectful as the `action` it is given.
-
-**Pin over a generic base.** A discharger consumes one layer and leaves the rest, whatever they
-are. Its input is a pinned row over a *generic* base `G` — the same `|` syntax, one level up —
-and its output row carries a **negative** member (`-E`, "this function *discharges* `E`"), which is
-what lets callers drop `E` from their own accounting:
-
-```eliot
-def runThrow[E, G[_], A](obj: {Throw[E] | G} A): {-Throw[E]} G[Either[E, A]]
-
-def catch[E, G[_] ~ Effect, A](computation: {Throw[E] | G} A, onError: E => A): {-Throw[E]} G[A] =
-   map(e -> foldEither(e, onError, a -> a), runThrow(computation))
-```
-
-That is the stdlib's actual `catch` — notice it is ordinary Eliot, written entirely in row syntax:
-even generic programming against effects never names a carrier type. Your own handlers usually
-don't need the `{-E}` annotation either: when an effect enters through a parameter and demonstrably
-does not survive your body, the compiler infers the discharge.
-
-**One boundary rule.** A handler whose effectful input arrives as a carrier-typed *parameter*
-(like `computation` above) must return a carrier-headed type — `G[A]`, never a bare `A`. That
-carrier belongs to your caller; only they can take it to a pure boundary.
-
-Finally, the payoff of keeping logic generic: any `{Abort, Throw[E], State[S], Dep[X]}` function
-can be run on a **pure carrier** — discharge everything, pin what remains over `Id`, and assert on
-plain data. That is the subject of
-[Testing effects]({{ '/docs/testing-effects/' | relative_url }}).
-
-Next: the shipped effects one by one — operations and dischargers — in the
-[effect catalogue]({{ '/docs/effect-catalogue/' | relative_url }}).
+Next: [When effects run]({{ '/docs/effect-evaluation/' | relative_url }}).

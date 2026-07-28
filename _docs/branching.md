@@ -25,11 +25,11 @@ def main: {Console} Unit = printLine(label(true))
 This prints `ON`. `fold` is part of the auto-imported prelude, so it needs no import. Two things to
 know about it:
 
-- **Both arms must have the same type.** `fold(active, "ON", "OFF")` is fine (both `String`); a `fold`
-  mixing a `String` and an `Int` is a type error.
-- **Pure arms are both evaluated.** `fold` *selects* between two values — it does not lazily skip the
-  branch not taken. (When the arms are effectful *computations*, only the selected one is actually
-  **run**, but you should never rely on a pure arm being skipped for correctness.)
+- **Both arms must agree on the value type they yield.** `fold(active, "ON", "OFF")` is fine (both
+  `String`); a `fold` mixing a `String` and an `Int` is a type error.
+- **Only the selected arm runs.** `fold` declares both arms as suspended, so an effectful arm that
+  isn't chosen is never performed. A pure arm sits happily beside an effectful one — a mixed
+  `fold(flag, printLine("x"), unit)` is fine, since the pure arm is lifted to meet the other.
 
 Writing `fold` by hand everywhere gets tedious, so the prelude builds a familiar `if..else` directly
 on top of it — that's what you'll reach for almost every time.
@@ -93,10 +93,10 @@ Both compile down to the same eliminator, so the choice is only about fit:
 
 - Reach for **`if..else`** by default. It reads like the `if` you already know, it chains, it guards,
   and it works the same in a pure function or an effectful one.
-- Reach for **`fold`** when you already hold two ready-made values of the same type and simply want to
-  select one. It's a plain function call — no `else`, and it never introduces `Abort` in the first
-  place. The trade-off is that both arms must already share a type; `fold` won't lift a pure arm to
-  meet an effectful one the way `if`'s arm does.
+- Reach for **`fold`** when you already hold both alternatives and simply want to select one. It's a
+  plain function call — no `else`, and it never introduces `Abort` in the first place. The trade-off
+  is that you must always supply both arms, where `if` lets you leave one out and turn the
+  expression into a guard.
 
 ## Boolean operators
 

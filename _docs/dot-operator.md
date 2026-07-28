@@ -12,16 +12,22 @@ chain that reads in run order — and it shapes how every function in the langua
 
 ## The dot is a function too
 
-Like every operator, `.` is an ordinary definition. Simplified, it is:
+Like every operator, `.` is an ordinary definition:
 
 ```eliot
 infix left below apply
-def .[A, B](a: A, f: Function[A, B]): B = f(a)
+def .[A, B](a: A, f: A => {Effect} B): {Effect} B = f(a)
 ```
 
 So `a.f` is just `f(a)`. It is **positional, not member-based** — there is no notion of "methods on an
 object". `a.f` works for *any* function `f` that can take `a`. That one fact is why field accessors,
 library functions, and your own functions all dot-chain uniformly.
+
+The `{Effect}` on the function slot is what lets a chain carry effects — `names.foreach(n -> printLine(n))`
+is as effectful as its callback. The *subject* `a: A` carries no such row, which means a dot chain
+transports a **value**, never an unrun computation; the
+[When effects run]({{ '/docs/effect-evaluation/' | relative_url }}) chapter covers the one case where
+that shows up (call dischargers directly rather than dot-chaining them).
 
 ## Reading a chain
 

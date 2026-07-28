@@ -1,7 +1,7 @@
 ---
 title: Idioms and gotchas
 nav_title: Idioms & gotchas
-order: 24
+order: 26
 part: In the large
 stub: true
 summary: A cheatsheet of idiomatic Eliot style and the sharp edges to watch for, gathered in one place.
@@ -32,8 +32,10 @@ newcomers. Keep this open while you write your first programs.
 - Effect rows wrap the plain type: `{Console} Unit`, never `{Console} IO[Unit]`.
 - `a-1` lexes as `a` then `-1`; write `a - 1`.
 - A lowercase name in a `case` is a binder, not a constructor; there are no literal patterns.
-- `fold` and eliminator arms are strict for pure values.
-- Import every effect; never re-import the auto-imported `eliot.lang` prelude.
+- Arguments run where they are written; only a parameter that declares an effect row is suspended.
+- Call dischargers directly (`runThrow(parse(raw))`), don't dot-chain them.
+- Effects are ambient — never import `eliot.effect`, and never re-import the `eliot.lang` prelude.
+  Only `eliot.carrier` needs an import, and only in effect-generic library code.
 - Two infix operators with no declared precedence relation can't share an expression.
 - No recursion — restructure around folds, `match`, or `forever`.
 

@@ -1,7 +1,7 @@
 ---
 title: Modules and imports
 nav_title: Modules & imports
-order: 21
+order: 23
 part: In the large
 stub: true
 summary: One file is one module, how names resolve per file, the auto-imported prelude, and why effects always need an import.
