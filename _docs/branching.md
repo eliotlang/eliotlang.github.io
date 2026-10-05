@@ -100,13 +100,10 @@ Most of the time, though, you write the `else`.
 ## Boolean operators
 
 Conditions are built with the usual comparisons (`>`, `<`, `>=`, `<=`, `==`) and logical operators
-`&&`, `||`, and `!` — all in the prelude, no import needed. One quirk to note:
-
-> **`&&` and `||` have the *same* precedence.** Unlike most languages, `||` does not bind looser than
-> `&&`. A mixed chain groups left-to-right, so `a || b && c` means `(a || b) && c`. When you mean
-> `a || (b && c)`, add the parentheses. Also, both operands always evaluate — there is no
-> short-circuiting, because they are ordinary functions over already-computed `Bool` values.
-{: .warn}
+`&&`, `||`, and `!` — all in the prelude, no import needed. They group the way you're used to: `&&`
+binds tighter than `||`, so `a || b && c` means `a || (b && c)`. One difference to keep in mind:
+there is no short-circuiting. `&&` and `||` are ordinary functions over already-computed `Bool`
+values, so both operands always evaluate.
 
 ## `match`: branching on shape
 
