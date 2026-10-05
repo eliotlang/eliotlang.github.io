@@ -306,7 +306,7 @@ section.block { padding-bottom: var(--space-9); scroll-margin-top: 80px; }
 
 /* Build / install */
 .build__inner { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); padding: var(--space-8); text-align: center; }
-.build__term { max-width: 640px; margin: var(--space-5) auto; text-align: left; }
+.build__term { max-width: 720px; margin: var(--space-5) auto; text-align: left; }
 .build__row { display: flex; align-items: center; justify-content: center; gap: var(--space-3); flex-wrap: wrap; }
 .build__note { font-family: var(--font-body); font-size: var(--text-sm); color: var(--text-faint); max-width: 46em; margin: var(--space-4) auto 0; }
 

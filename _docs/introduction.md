@@ -68,8 +68,8 @@ Chapters marked *soon* in the sidebar are outlined but not yet written — they 
 is heading.
 
 > The compiler, the standard library, and every example in this guide live in the
-> [Eliot repository]({{ site.github_repo }}). If a program here looks interesting, you can find
-> it under `examples/src/` and run it yourself.
+> [Eliot repository]({{ site.github_repo }}). You don't need to clone it to follow along: the
+> next chapter sets up a project of your own, and any program from `examples/src/` runs in it.
 {: .note}
 
-Ready? The next chapter gets Eliot building on your machine and runs your first program.
+Ready? The next chapter sets up a project with one downloaded script and runs your first program.

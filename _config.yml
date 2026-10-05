@@ -9,7 +9,7 @@ url: "https://eliotlang.github.io"
 lang: en
 
 # Real project coordinates
-github_repo: https://github.com/robertbraeutigam/eliot
+github_repo: https://github.com/eliotlang/eliot
 status: Alpha · in active development
 
 # Build settings
