@@ -29,7 +29,7 @@ idea replaces a whole category of special-purpose language machinery.
 
 ## In the meantime
 
-- Examples: [`FunctionAsType.els`]({{ site.github_repo }}/blob/main/examples/src/FunctionAsType.els),
-  [`TypeValues.els`]({{ site.github_repo }}/blob/main/examples/src/TypeValues.els),
-  [`TypeLevelMatch.els`]({{ site.github_repo }}/blob/main/examples/src/TypeLevelMatch.els),
-  [`GenericTypes.els`]({{ site.github_repo }}/blob/main/examples/src/GenericTypes.els).
+- Examples: [`FunctionAsType.els`]({{ site.github_repo }}/blob/master/examples/src/FunctionAsType.els),
+  [`TypeValues.els`]({{ site.github_repo }}/blob/master/examples/src/TypeValues.els),
+  [`TypeLevelMatch.els`]({{ site.github_repo }}/blob/master/examples/src/TypeLevelMatch.els),
+  [`GenericTypes.els`]({{ site.github_repo }}/blob/master/examples/src/GenericTypes.els).

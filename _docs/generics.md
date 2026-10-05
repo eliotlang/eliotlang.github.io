@@ -31,9 +31,9 @@ generic parameter can even be a *number* or a *string*.
 
 ## In the meantime
 
-- Examples: [`GenericTypes.els`]({{ site.github_repo }}/blob/main/examples/src/GenericTypes.els),
-  [`ImplicitIntParam.els`]({{ site.github_repo }}/blob/main/examples/src/ImplicitIntParam.els),
-  [`ImplicitIntReturn.els`]({{ site.github_repo }}/blob/main/examples/src/ImplicitIntReturn.els),
-  [`MonomorphCheck.els`]({{ site.github_repo }}/blob/main/examples/src/MonomorphCheck.els).
+- Examples: [`GenericTypes.els`]({{ site.github_repo }}/blob/master/examples/src/GenericTypes.els),
+  [`ImplicitIntParam.els`]({{ site.github_repo }}/blob/master/examples/src/ImplicitIntParam.els),
+  [`ImplicitIntReturn.els`]({{ site.github_repo }}/blob/master/examples/src/ImplicitIntReturn.els),
+  [`MonomorphCheck.els`]({{ site.github_repo }}/blob/master/examples/src/MonomorphCheck.els).
 - The next chapter, [Types are values]({{ '/docs/types-are-values/' | relative_url }}), shows why
   value parameters work at all.

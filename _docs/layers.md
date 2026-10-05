@@ -34,4 +34,4 @@ library.
   `jvm/eliot/eliot/lang/Option.els` (concrete) in the
   [compiler repository]({{ site.github_repo }}/tree/main).
 - The compiler's own `eliot-layers` skill and the design notes under
-  [`docs/`]({{ site.github_repo }}/tree/main/docs) go deep on the mechanics.
+  [`docs/`]({{ site.github_repo }}/tree/master/docs) go deep on the mechanics.

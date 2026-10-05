@@ -51,9 +51,7 @@ description: >-
 </code></pre>
     </div>
     <div class="term">
-      <div class="term__line"><span class="prompt">$ </span>./mill examples.run jvm exe-jar \</div>
-      <div class="term__line">    examples/src/ -m WherePrecondition</div>
-      <div class="term__line"><span class="prompt">$ </span>java -jar target/WherePrecondition.jar</div>
+      <div class="term__line"><span class="prompt">$ </span>./eliotw example</div>
       <div class="term__line is-out">100<span class="term__cursor" aria-hidden="true"></span></div>
     </div>
   </div>
@@ -229,10 +227,7 @@ description: >-
 </code></pre>
       </div>
       <div class="term">
-        <div class="term__line"><span class="prompt">$ </span>./mill examples.run jvm exe-jar \</div>
-        <div class="term__line">    examples/src/ -m EffectsMulti</div>
-        <div class="term__line"><span class="prompt">$ </span>echo "hello there" | \</div>
-        <div class="term__line">    java -jar target/EffectsMulti.jar</div>
+        <div class="term__line"><span class="prompt">$ </span>echo "hello there" | ./eliotw example</div>
       </div>
     </div>
   </div>
@@ -241,15 +236,15 @@ description: >-
 <!-- ================= Build ================= -->
 <section class="block wrap" id="build">
   <div class="build__inner">
-    <p class="eyebrow">Build from source</p>
-    <h2>One repo. Clone, build, run.</h2>
+    <p class="eyebrow">Get started</p>
+    <h2>One script. Download, build, run.</h2>
     <div class="build__term">
       <div class="term">
-        <div class="term__line"><span class="prompt">$ </span>git clone https://github.com/robertbraeutigam/eliot</div>
-        <div class="term__line"><span class="prompt">$ </span>cd eliot</div>
-        <div class="term__line"><span class="prompt">$ </span>./mill examples.run jvm exe-jar \</div>
-        <div class="term__line">    examples/src/ -m HelloWorld</div>
-        <div class="term__line"><span class="prompt">$ </span>java -jar target/HelloWorld.jar</div>
+        <div class="term__line"><span class="prompt">$ </span>curl -fsSLo eliotw \</div>
+        <div class="term__line">    https://raw.githubusercontent.com/eliotlang/eliot-build/v0/eliotw</div>
+        <div class="term__line"><span class="prompt">$ </span>chmod +x eliotw</div>
+        <div class="term__line is-muted"># add eliot.pkg and src/HelloWorld.els (see the guide)</div>
+        <div class="term__line"><span class="prompt">$ </span>./eliotw hello</div>
         <div class="term__line is-out">Hello World!<span class="term__cursor" aria-hidden="true"></span></div>
       </div>
     </div>
@@ -258,14 +253,16 @@ description: >-
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.76.4-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.28 5.69.42.36.79 1.06.79 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
         View on GitHub
       </a>
-      <a class="btn btn--ghost" href="{{ site.github_repo }}/tree/main/examples/src" rel="noopener">Browse the examples</a>
+      <a class="btn btn--ghost" href="{{ '/docs/install/' | relative_url }}">Set up a project</a>
+      <a class="btn btn--ghost" href="{{ site.github_repo }}/tree/master/examples/src" rel="noopener">Browse the examples</a>
       <span class="badge"><span class="badge__dot" style="background: var(--warn)"></span>Alpha</span>
       <span class="badge badge--pass"><span class="badge__dot"></span>builds on the JVM today</span>
     </div>
     <p class="build__note">
       Eliot is pre-release. The compiler builds and runs your programs on the JVM today; the
-      native microcontroller backend is in active development. Clone the repo, build an example,
-      and follow along.
+      native microcontroller backend is in active development. All you need is Java 21 and the
+      <code>eliotw</code> wrapper, which fetches the build tool, the compiler and the standard library on
+      the first build.
     </p>
   </div>
 </section>

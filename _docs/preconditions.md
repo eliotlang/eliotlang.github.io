@@ -35,6 +35,6 @@ fits a byte, say — checked at every call site, with zero runtime cost.
 ## In the meantime
 
 - Example:
-  [`WherePrecondition.els`]({{ site.github_repo }}/blob/main/examples/src/WherePrecondition.els).
+  [`WherePrecondition.els`]({{ site.github_repo }}/blob/master/examples/src/WherePrecondition.els).
 - Background: [Integers & ranges]({{ '/docs/integers-and-ranges/' | relative_url }}) introduces the
   `range` accessor these preconditions reason about.

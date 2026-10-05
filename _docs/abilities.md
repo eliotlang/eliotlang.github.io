@@ -42,9 +42,9 @@ entirely at compile time with no runtime dictionaries.
 
 ## In the meantime
 
-- Examples: [`Ability.els`]({{ site.github_repo }}/blob/main/examples/src/Ability.els),
-  [`AbilityConstraint.els`]({{ site.github_repo }}/blob/main/examples/src/AbilityConstraint.els),
-  [`AbilityDerive.els`]({{ site.github_repo }}/blob/main/examples/src/AbilityDerive.els),
-  [`ArithmeticAbility.els`]({{ site.github_repo }}/blob/main/examples/src/ArithmeticAbility.els).
+- Examples: [`Ability.els`]({{ site.github_repo }}/blob/master/examples/src/Ability.els),
+  [`AbilityConstraint.els`]({{ site.github_repo }}/blob/master/examples/src/AbilityConstraint.els),
+  [`AbilityDerive.els`]({{ site.github_repo }}/blob/master/examples/src/AbilityDerive.els),
+  [`ArithmeticAbility.els`]({{ site.github_repo }}/blob/master/examples/src/ArithmeticAbility.els).
 - The [API reference]({{ '/apidoc/' | relative_url }}) shows the shipped abilities (`Show`, `Eq`,
   `Compare`, `Numeric`, and the effect abilities).

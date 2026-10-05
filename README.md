@@ -2,7 +2,7 @@
 
 The website for **Eliot** — the *Embedded Language for the Internet of Things*.
 A functional, generic programming language for microcontrollers. The compiler
-lives at [robertbraeutigam/eliot](https://github.com/robertbraeutigam/eliot).
+lives at [eliotlang/eliot](https://github.com/eliotlang/eliot).
 
 This is a [GitHub Pages](https://pages.github.com/) site built with Jekyll.
 
@@ -55,5 +55,6 @@ env GEM_HOME="$GD" JEKYLL_NO_BUNDLER_REQUIRE=1 /usr/bin/ruby3.3 "$GD/bin/jekyll"
 ## Status
 
 Eliot is pre-release (alpha, in active development). The site says so plainly:
-primary calls to action point at the examples and the source, and the "Build"
-section shows how to build and run from source on the JVM today.
+the "Get started" section and the install chapter show how to build and run a
+program on the JVM today with nothing but the `eliotw` wrapper, which is served
+from `https://raw.githubusercontent.com/eliotlang/eliot-build/v0/eliotw`.
