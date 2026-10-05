@@ -1,45 +1,17 @@
 ---
-title: Branching without if
+title: "Branching: if is a function"
 nav_title: Branching
 order: 5
 part: Core language
-summary: There is no if keyword. Decisions are made with fold, the if..else functions, and match.
+summary: Decisions are made with if..else, which is an ordinary library function rather than a keyword, and with match.
 ---
 
-Eliot has **no `if`/`then`/`else` keyword**. Branching is done with ordinary functions and with
-`match`. Once you see how, it reads exactly like the imperative `if` you already know — but it's
-built from smaller, more honest parts.
+Branching in Eliot reads the way you'd expect: `if`, `else`, and `match`. What's different is that
+`if` and `else` are **not keywords** — they are ordinary functions from the prelude, and nothing about
+them is special to the compiler.
 {: .docs-lead}
 
-## `fold`: the primitive
-
-The two-armed eliminator for `Bool` is `fold`. It takes a condition and two arms, and yields one of
-them:
-
-```eliot
-def label(active: Bool): String = fold(active, "ON", "OFF")
-
-def main: {Console} Unit = printLine(label(true))
-```
-
-This prints `ON`. `fold` is part of the auto-imported prelude, so it needs no import. Two things to
-know about it:
-
-- **Both arms must agree on the value type they yield.** `fold(active, "ON", "OFF")` is fine (both
-  `String`); a `fold` mixing a `String` and an `Int` is a type error.
-- **Only the selected arm runs.** `fold` declares both arms as suspended, so an effectful arm that
-  isn't chosen is never performed. A pure arm sits happily beside an effectful one — a mixed
-  `fold(flag, printLine("x"), unit)` is fine, since the pure arm is lifted to meet the other.
-
-Writing `fold` by hand everywhere gets tedious, so the prelude builds a familiar `if..else` directly
-on top of it — that's what you'll reach for almost every time.
-
-## `if..else`: the readable form
-
-`if` is a function too — `if(condition, value)` yields `value` when the condition holds, and otherwise
-**short-circuits**. The infix `else` supplies the alternative. Because everything is curried,
-`if(cond, value)` can be written `if(cond) value`, which is what makes the classic spelling read
-naturally:
+## `if..else`
 
 ```eliot
 def classify(n: Int): {Console} Unit =
@@ -48,16 +20,48 @@ def classify(n: Int): {Console} Unit =
 def main: {Console} Unit = classify(42)
 ```
 
-This prints `positive`. `else` binds **right-associatively**, so `if … else if … else …` chains nest
-exactly the way you'd expect.
+This prints `positive`. The condition goes in parentheses, the value follows it, and `else` supplies
+the alternative. `else` binds **right-associatively**, so `if … else if … else …` chains nest exactly
+the way you'd expect. Both branches must yield the same type.
 
-> **What's under the hood?** A bare `if` that doesn't match its condition short-circuits using the
-> (ambient) `Abort` effect, and the infix `else` is what *discharges* that effect by providing the
-> fallback. When an `if..else` is complete, the `Abort` is fully handled and never appears in your
-> function's type: `classify` above declares only `{Console}`. This is your first taste of
-> introducing an effect and then discharging it; the
-> [Effects]({{ '/docs/effects/' | relative_url }}) part makes it precise.
-{: .note}
+## `if` is just a function
+
+Here are the two signatures, straight from the standard library:
+
+```eliot
+def if[T](condition: Bool, value: {Abort} T): {Abort} T
+def else[A](computation: {Abort} A, fallback: {} A): A
+```
+
+Everything about the familiar syntax falls out of ordinary rules:
+
+- **The call syntax is currying.** Every function is curried, so `if(cond, value)` can equally be
+  written `if(cond) value`. That's all `if(n > 0) "positive"` is: a two-argument call, spelled with
+  the second argument after the parentheses.
+- **`else` is an infix operator.** `x else y` is `else(x, y)` — any two-parameter function can be
+  declared infix, and `else` is declared right-associative and loose-binding so chains need no
+  parentheses.
+- **The branches don't run early, because the signatures say so.** In most languages a function's
+  arguments are evaluated before the call, which is exactly why `if` has to be built into the
+  language there. In Eliot an argument also runs before the call — *unless the parameter declares an
+  effect row*. `value: {Abort} T` and `fallback: {} A` both do, so they arrive as suspended
+  computations, and only the branch that is selected ever runs. Laziness isn't a property of `if`;
+  it's something any function can ask for in its signature.
+- **A false condition is an effect.** When the condition doesn't hold, `if` has no value to give, so
+  it *aborts* — it performs the (ambient) `Abort` effect, which is why its result is `{Abort} T`.
+  `else` takes that possibly-aborting computation and *discharges* the `Abort` by providing the
+  fallback, so its result is a plain `A`. When an `if..else` is complete, the `Abort` is fully
+  handled and never appears in your function's type: `classify` above declares only `{Console}`.
+
+This is your first taste of introducing an effect and then discharging it; the
+[Effects]({{ '/docs/effects/' | relative_url }}) part makes it precise. The practical upshot is that
+there's nothing magic to learn: if you wanted a different control construct, you could write it
+yourself with the same tools. The prelude does exactly that with `when` and `unless`, one-armed
+siblings for statements that need no `else`:
+
+```eliot
+def warnIfEmpty(name: String): {Console} Unit = when(name == "") printLine("no name given")
+```
 
 ## Pure or effectful, it's the same `if..else`
 
@@ -85,18 +89,13 @@ def greet(known: Bool, name: String): {Console} Unit =
 ```
 
 A bare `if` with **no** `else` doesn't discharge the `Abort` — it floats up to the caller, turning the
-`if` into a guard. That's occasionally what you want, but most of the time you write the `else`.
+`if` into a guard. That follows directly from the signature, and it's occasionally what you want:
 
-## `fold` or `if..else`?
+```eliot
+def requirePositive(n: Int): {Abort} Int = if(n > 0) n
+```
 
-Both compile down to the same eliminator, so the choice is only about fit:
-
-- Reach for **`if..else`** by default. It reads like the `if` you already know, it chains, it guards,
-  and it works the same in a pure function or an effectful one.
-- Reach for **`fold`** when you already hold both alternatives and simply want to select one. It's a
-  plain function call — no `else`, and it never introduces `Abort` in the first place. The trade-off
-  is that you must always supply both arms, where `if` lets you leave one out and turn the
-  expression into a guard.
+Most of the time, though, you write the `else`.
 
 ## Boolean operators
 
@@ -122,9 +121,8 @@ def describe(m: Maybe[String]): String = m match {
 }
 ```
 
-The rule of thumb: reach for `if..else` for a `Bool` decision, `match` when you're distinguishing the
-*constructors* of a value, and drop down to `fold` when you just want to pick between two ready-made
-values. All three compile down to the same eliminators — there's no magic control flow hiding
-underneath, which is exactly what keeps Eliot programs analyzable.
+The rule of thumb: reach for `if..else` for a `Bool` decision and `match` when you're distinguishing
+the *constructors* of a value. Neither is magic control flow hiding underneath — which is exactly what
+keeps Eliot programs analyzable.
 
 Next: defining your own data types, and taking them apart with `match`.
