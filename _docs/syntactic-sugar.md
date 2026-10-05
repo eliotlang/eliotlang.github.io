@@ -18,18 +18,20 @@ once.
 
 ## What this chapter will cover
 
-- **Effect rows**: `{E1, E2} A` desugars to one shared inferable carrier —
-  `[auto F[_] ~ E1 & E2] F[A]` — which is why the value type inside a row is plain (`Unit`, not
-  `IO[Unit]`), and why several `{…}` occurrences in one signature collapse onto the same carrier.
-- **Pinned rows**: `{Throw[E] | Id} A` desugars to the canonical carrier stack
-  (`ThrowCarrier[E, Id, A]`, by the `<Ability>Carrier` naming convention) — a concrete type, no
-  carrier generic introduced.
+- **Effect rows**: each entry of a return row `{E1, E2} A` desugars to one hidden type parameter
+  whose value is the *implementation* of that effect, and the type itself is just `A` — which is why
+  the value type inside a row is plain (`Unit`, not `IO[Unit]`). A row on a parameter or a `data`
+  field additionally makes it a thunk (`{Abort} T` becomes `Unit => T`), which is how an argument
+  arrives unrun.
+- **Implementations**: a syntax-directed pass then writes the implementation into every effectful
+  call — from the nearest `with`, from the enclosing function's own row, or from a discharging
+  parameter — so an operation like `printLine` becomes a direct call to a known method.
 - **Blocks**: a `{ … }` block lowers to a tower of immediately-applied lambdas, which is where
   automatic effect sequencing comes from.
-- **Direct style**: before type checking, a dedicated phase rewrites each definition into explicit
-  monadic code — inserting the `flatMap` chains, writing the carrier at every effectful call, and
-  choosing the identity carrier at a pure boundary. It is a *desugaring*, driven only by the
-  declarations in scope, which is why evaluation order is readable from signatures.
+- **Direct style**: there is no monadic rewrite. Evaluation is strict and an effect operation is an
+  ordinary call, so effectful code runs in the order it is written; the only thing the compiler adds
+  is the thunk for a parameter that declares a row, which is why evaluation order is readable from
+  signatures.
 - **The dot operator**: `a.f(b)` is `f(b, a)`, via the infix `.` defined `below apply`.
 - **`if..else`**: `if(cond, v)` is `fold(cond, v, abort)`, and `else` discharges the `Abort` — control
   flow built from a plain eliminator and an effect.

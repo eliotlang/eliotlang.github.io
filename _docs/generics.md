@@ -19,8 +19,8 @@ generic parameter can even be a *number* or a *string*.
 
 - **Type parameters** `[A]`, written in UPPERCASE, as on `data Maybe[A]` and
   `def describe[A](x: A): String`.
-- **Higher-kinded parameters** `[F[_]]` — a parameter that is itself a type constructor, the shape
-  behind the effect system's carriers.
+- **Higher-kinded parameters** `[F[_]]` — a parameter that is itself a type constructor, as in an
+  ability over a container (`ability Container[F[_]]`).
 - **Value parameters** `[I: BigInteger]`, `[NAME: String]` — since types are values, a generic can be
   a compile-time number or string (`hello[1]`, `Person["John"]`).
 - **`auto`** — parameters you can omit at the use site because the compiler infers or calculates

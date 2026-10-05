@@ -44,9 +44,19 @@ Three properties make a row different from the mechanisms you may be comparing i
   non-termination all use the same mechanism, so they compose with each other the same way.
 
 An effect is not magic control flow. Each one is an ordinary
-[ability]({{ '/docs/abilities/' | relative_url }}) — an interface a platform implements — and the
-row is the compiler's record of which abilities a body needs. That is why user code can define new
-effects with no compiler support.
+[ability]({{ '/docs/abilities/' | relative_url }}) — an interface something implements — declared
+with the `effect` keyword:
+
+```eliot
+effect Console {
+   def printLine(s: String): Unit
+   def readLine: Option[String]
+}
+```
+
+The row is the compiler's record of which effects a body needs, and an implementation of each is
+supplied from outside — by the platform when the program runs, or by a test that wants to fake one.
+That is why user code can define new effects with no compiler support.
 
 ## The vocabulary is already in scope
 
@@ -54,18 +64,17 @@ The whole `eliot.effect` package is **ambient**: it is auto-imported into every 
 `printLine`, `raise`, `catch`, `state` and friends need no import line. A local declaration of the
 same name silently wins over the ambient one, so a name you want back is always yours to reclaim.
 
-Only the machinery underneath the effects — the `eliot.carrier` package — is import-required, and
-that is deliberate: application code never needs it. You will see it once, much later, when writing
-your own effect-generic library function.
+There is no hidden machinery to import either: no monad, no wrapper type, no carrier. An effect is
+an ability, and its implementation is plain code.
 
 ## Direct style: no plumbing
 
 Inside an effectful function you just *call things*. An effectful call yields its plain value:
-`readLine` **is** a `String` where you write it. Sequencing through blocks, arguments, and dot
-chains is inserted by the compiler.
+`readLine` **is** an `Option[String]` where you write it, and `printLine` takes a plain `String`.
+Blocks, arguments and dot chains run in the order you write them, with nothing to thread by hand.
 
 ```eliot
-def echo: {Console} Unit = printLine(readLine)
+def echo: {Console} Unit = printLine(readLine orElse "(no input)")
 
 def greetTwice: {Console} Unit = {
    printLine("Hello!")
@@ -79,17 +88,21 @@ exactly as it binds a pure one:
 ```eliot
 def greetByName: {Console} Unit = {
    printLine("What is your name?")
-   val name = readLine
-   printLine(name)
+   val name = readLine orElse "stranger"
+   printLine("Hello, " ++ name ++ "!")
 }
 ```
 
-The compiler rewrites this into explicit sequencing before type checking — the same code you would
-have written by hand in a language with a monadic I/O type. The difference is that you did not have
-to, and the resulting program is the same either way.
+(`readLine` yields an `Option[String]`, which is `None` at the end of input; `orElse` supplies the
+default.)
 
-> **The rewrite is driven by signatures, not by guesswork.** Everything the compiler needs to know
-> about how a call is sequenced is written in the declarations it can see. That is why the next
+There is nothing to rewrite here. An effect operation is an **ordinary call** to an ordinary
+function — the implementation of `printLine` that is in force — so a block runs its steps in order
+for the same reason it does in Java or C: evaluation is strict, and a block is a sequence. No
+`IO` value is built and later interpreted.
+
+> **Evaluation order is driven by signatures, not by guesswork.** Everything you need to know about
+> when an argument runs is written in the declarations you can see. That is why the next
 > chapter, [When effects run]({{ '/docs/effect-evaluation/' | relative_url }}), is about *reading*
 > those declarations: once you can, the evaluation order of any expression is something you can see
 > rather than infer.
@@ -101,13 +114,14 @@ If your function calls something that may use the console, then your function ma
 Effects propagate to callers automatically:
 
 ```eliot
-def name: {Console} String = readLine
+def name: {Console} String = readLine orElse "stranger"
 
 def greet: {Console} Unit = printLine(name)
 ```
 
-`greet` performs `Console` because `name` does. Nothing was passed, injected, or threaded — the row
-of a body is simply the union of the rows of what it calls.
+`greet` performs `Console` because `name` does. You pass nothing by hand — the row of a body is
+simply the union of the rows of what it calls, and whichever `Console` implementation `greet`'s caller
+has in force is the one `name` uses.
 
 ## The one rule: used must be declared
 
@@ -130,10 +144,9 @@ Two consequences worth internalising:
 - **A row is a "may", not a "must".** Declaring `{Console}` and never printing is fine. The check is
   one-directional: everything you do must be declared, not the other way around.
 
-This is checked twice, and both checks speak the same language: once per definition, as soon as
-your signature and the signatures you call are known, and once more after the whole program is
-assembled, on every concrete instantiation. The second check is a fail-safe — an undeclared effect
-stops code generation, it never merely warns.
+The check is per definition and reads only declarations — your signature and the signatures of what
+you call — so it never depends on how your function happens to be used elsewhere. An undeclared
+effect is an error at the call that performs it; it never merely warns.
 
 ## Where effects end
 
@@ -161,8 +174,10 @@ def main: {Console} Unit = printLine("Hello World!")
 ```
 
 You never say *how* `Console` is performed. The target you compile for — the JVM today, a
-microcontroller tomorrow — supplies that when it runs `main`. This is the payoff that motivates the
-whole design:
+microcontroller tomorrow — ships a **default implementation** of each effect it supports, and the
+entry point binds those defaults for every effect `main` declares. Below `main`, each function simply
+receives the implementation its caller had, so the one decision made at the top reaches every
+`printLine` in the program. This is the payoff that motivates the whole design:
 
 - **Business logic stays portable.** A `{Console, Throw[String]}` function names no platform type,
   so it compiles for any target that can provide those effects.
@@ -180,11 +195,12 @@ whole design:
   their operations, and how each is discharged.
 - **[Discharging effects]({{ '/docs/discharging-effects/' | relative_url }})** — turning effectful
   code back into plain values.
-- **[Carriers and pinned rows]({{ '/docs/carriers/' | relative_url }})** — the model underneath,
-  and how to store a computation in a `data` field.
+- **[Implementations and `with`]({{ '/docs/implementations/' | relative_url }})** — the model
+  underneath: where an effect's implementation comes from, how to choose a different one, and how
+  to store a computation in a `data` field.
 - **[Combining and ordering effects]({{ '/docs/combining-effects/' | relative_url }})** — what
   happens when several effects meet.
 - **[Testing effects]({{ '/docs/testing-effects/' | relative_url }})** — running effectful logic
-  with no I/O at all.
+  with no I/O at all, and faking an effect without touching the code under test.
 
 Next: [When effects run]({{ '/docs/effect-evaluation/' | relative_url }}).

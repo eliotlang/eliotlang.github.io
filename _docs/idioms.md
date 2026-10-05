@@ -32,9 +32,9 @@ newcomers. Keep this open while you write your first programs.
 - Effect rows wrap the plain type: `{Console} Unit`, never `{Console} IO[Unit]`.
 - A lowercase name in a `case` is a binder, not a constructor; there are no literal patterns.
 - Arguments run where they are written; only a parameter that declares an effect row is suspended.
-- Call dischargers directly (`runThrow(parse(raw))`), don't dot-chain them.
+- Hand dischargers their computation as an argument (`runThrow(parse(raw))`), don't dot-chain them.
 - Effects are ambient — never import `eliot.effect`, and never re-import the `eliot.lang` prelude.
-  Only `eliot.carrier` needs an import, and only in effect-generic library code.
+- `with` belongs in tests: production code names no implementation and lets its caller decide.
 - Two infix operators with no declared precedence relation can't share an expression.
 - No recursion — restructure around folds, `match`, or `forever`.
 

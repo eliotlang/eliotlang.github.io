@@ -3,7 +3,7 @@ title: Discharging effects
 nav_title: Discharging effects
 order: 19
 part: Effects
-summary: Turning effectful code into plain values — catch, else, provide, the run… family, the direct-call rule, and why a discharged effect never appears in your row.
+summary: Turning effectful code into plain values — catch, else, provide, the run… family, how nesting decides the outcome, and why a discharged effect never appears in your row.
 ---
 
 An effect declared in a signature has to be *discharged* somewhere — handled, given meaning, and
@@ -34,20 +34,27 @@ Both flavours do the same thing to the *type*: the discharged effect disappears 
 `{Console, Throw[String]} Config` computation under a `catch` is just `{Console} Config` — the
 failure has been handled, so it is no longer something the code "may do".
 
-## The direct-call rule
+How that works is unremarkable on purpose. A discharger is an ordinary function whose parameter
+declares the effect it handles — `catch`'s first parameter is `{Throw[E]} A`. Because the parameter
+declares a row, the argument arrives **unrun**; the discharger installs a handler (for `Throw`, the
+place a `raise` exits to), runs the computation inside it, and returns a plain value. The effect's
+operations inside the argument are bound to that handler, so they never reach your row.
 
-A discharger takes the computation it is about to run as a parameter, so **hand it the expression
-directly**:
+## Hand the discharger the computation
+
+A discharger takes the computation it is about to run as a parameter, so **write the computation in
+that parameter**:
 
 ```eliot
 def outcome: Pair[String, String] = runStateToPair("before", rename("after"))   // yes
 def outcome: Pair[String, String] = rename("after").runStateToPair("before")   // no
 ```
 
-The second spelling routes an unrun computation through the dot operator's *subject* slot, which is
-declared to carry values only — so it is a compile error naming the direct-call form. This is rule 3
-from [When effects run]({{ '/docs/effect-evaluation/' | relative_url }}); the **infix** dischargers
-`catch` and `else` are unaffected, because they already resolve to a direct call.
+The second spelling puts `rename("after")` in the dot operator's *subject* slot, which declares no
+row — so, by [rule 1]({{ '/docs/effect-evaluation/' | relative_url }}), it runs right there, before
+`runStateToPair` is ever called. Its `State` effect is then performed by `outcome` itself, which
+declares no row, and the compiler says so at the call. The **infix** dischargers `catch` and `else`
+read naturally either way, because their left operand already *is* the parameter.
 
 Nesting is how you combine them, innermost first:
 
@@ -55,10 +62,11 @@ Nesting is how you combine them, innermost first:
 runStateToPair(s0, logic else fallback)   // else wraps the call, runStateToPair wraps that
 ```
 
-> **You may bind a computation to a `val` first.** `val host = setting("host")` binds the
-> computation, and `host else "localhost"` discharges it afterwards — the effect has not been
-> sequenced away, so the discharger still sees what it needs. This is a change from earlier versions
-> of Eliot, where a `val` had to be avoided in front of a discharge.
+> **A `val` binds the value, not the computation.** The right-hand side of a `val` is an ordinary
+> position, so `val host = setting("host")` *runs* the lookup there and binds the `String`. By the
+> time you write `host else "localhost"` there is nothing left to discharge, and the compiler reports
+> the `Abort` at the `val`, where it was performed. Put the discharge on the right-hand side
+> instead: `val host = setting("host") else "localhost"`.
 {: .note}
 
 ## Handled means undeclared
@@ -88,10 +96,9 @@ def port: String = setting("port") else "8080"
 def tryPort: Option[String] = runAbort(setting("port"))
 ```
 
-All three are pure functions — no row, and nothing left over to unwrap. Behind the scenes the
-compiler runs what remains on the *identity* carrier and unwraps it; you never write that step. (The
-one time you do write it is when you hold a computation you stored yourself — see
-[Carriers and pinned rows]({{ '/docs/carriers/' | relative_url }}).)
+All three are pure functions — no row, and nothing left over to unwrap. A discharger returns an
+ordinary value (`String`, `Option[String]`), so there is no wrapper type and no "run" step at the
+boundary.
 
 ## Handlers may themselves be effectful
 
@@ -112,10 +119,10 @@ def load(url: String): {Console} String = fetch(url) catch report
 `Throw[NetError]` is discharged; `Console` — performed by the handler — stays in the row, which is
 exactly right.
 
-## Repeated effects: one discharger per layer
+## Repeated effects: one discharger each
 
 Two dependencies take two nested `provide`s; two error types take two `catch`es, each selecting its
-layer by the handler's parameter type:
+error type by the handler's parameter type:
 
 ```eliot
 def main: {Console} Unit =
@@ -125,24 +132,31 @@ def config: Config =
    loadConfig("https://cfg") catch ((n: NetError) -> defaultConfig) catch ((p: ParseError) -> defaultConfig)
 ```
 
-Each discharger peels exactly one effect layer; the rest keep floating.
+Each discharger handles exactly one effect; the rest keep floating.
 
 ## Writing your own handler
 
-Discharging is not reserved for the standard library. A function that *receives* an effectful
-computation and handles it is a handler, and it is ordinary Eliot:
+Discharging is not reserved for the standard library. A function whose parameter declares an effect
+receives that argument unrun, and may handle it — which makes it a discharger, in ordinary Eliot:
 
 ```eliot
-import eliot.carrier.Effect
-
-def orZero[G[_] ~ Effect](computation: {Throw[String] | G} Int): G[Int] =
-   computation catch (_ -> 0)
+def orZero(computation: {Throw[String]} Int): Int = computation catch ((err: String) -> 0)
 ```
 
-Callers hand `orZero` a raising computation and get one that no longer raises; `Throw[String]` drops
-out of their row automatically, with nothing to annotate. Two things in that signature need the
-model underneath — the `{… | G}` parameter spelling, and why the result must stay on `G` — and both
-are the subject of the next chapter.
+Read the signature as English: *"give me a computation that may raise a `String`, and I return an
+`Int`."* Callers hand `orZero` a raising computation and get a plain value back; `Throw[String]`
+never reaches their row.
+
+The handler names its error type, `(err: String)`, for a reason. When `catch` is handed a
+*parameter* rather than a call, there is no callee declaration to say which `Throw` it is
+discharging, and the compiler refuses to guess — a `catch` for the wrong error type would install a
+handler the `raise` never reaches. It asks you to write the type out, either in the handler as here
+or as `catch[String, Int](computation, _ -> 0)`. Whatever *else* the argument performs — printing, say — is not supplied by
+`orZero`'s parameter, so it stays the caller's, bound by the caller's own declaration.
+
+There is no type parameter for "the rest of the effects", no wrapper type in the result and no
+special rule about what the result may be: an effect your parameter declares and your body handles
+simply ends there.
 
 Next: the model beneath the rows —
-[Carriers and pinned rows]({{ '/docs/carriers/' | relative_url }}).
+[Implementations and `with`]({{ '/docs/implementations/' | relative_url }}).

@@ -123,7 +123,7 @@ description: >-
 <span class="t-kw">def</span> parseBad: {<span class="t-ty">Throw</span>[<span class="t-ty">String</span>]} <span class="t-ty">String</span> = raise(<span class="t-str">"malformed input"</span>)
 
 <span class="t-com">// `catch` discharges {Throw[String]} in one step —</span>
-<span class="t-com">// no Either, no transformer, no ThrowCarrier in sight.</span>
+<span class="t-com">// no Either, no transformer, no wrapper type in sight.</span>
 <span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = {
   printLine(parseOk  <span class="t-kw">catch</span> (err -&gt; err))
   printLine(parseBad <span class="t-kw">catch</span> (err -&gt; err))
@@ -218,7 +218,7 @@ description: >-
 <span class="t-com">// Three effects at once, in direct style.</span>
 <span class="t-kw">def</span> run: {<span class="t-ty">Dep</span>[<span class="t-ty">Database</span>], <span class="t-ty">Log</span>, <span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = {
   log(dependency.url)
-  printLine(readLine)
+  printLine(readLine orElse <span class="t-str">"(no input)"</span>)
 }
 
 <span class="t-com">// Injected at the discharge site.</span>
