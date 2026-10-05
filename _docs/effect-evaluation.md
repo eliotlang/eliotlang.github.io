@@ -3,21 +3,23 @@ title: When effects run
 nav_title: When effects run
 order: 17
 part: Effects
-summary: Effects run where they are written; a parameter that must not run its argument declares a row; and a plain type parameter can never hold a computation.
+summary: An argument runs before the call unless its parameter declares a row; a row-typed parameter receives the computation unrun; and an effect is always provided where it is written, wherever it ends up running.
 ---
 
-Direct style hides the plumbing, not the semantics. This chapter answers the question that follows
-naturally from the last one: given an expression, **when does each of its effects actually happen** —
-and how do you tell without reading the callee's body?
+Direct style hides the plumbing, not the semantics. Two questions follow naturally from the last
+chapter: given an effectful expression, **when does it run** — and **whose implementation of the
+effect does it use**? Both answers are written in declarations you can see, and they are
+independent of each other.
 {: .docs-lead}
 
-There are three rules. They fit on one page, and together they make evaluation order something you
-*read* rather than something you *learn per function*.
+There are three rules. The first two are about *when*; the third is about *who*. Together they make
+evaluation order and effect handling something you *read* off a signature rather than something you
+*learn per function*.
 
-## Rule 1 — effects run where they are written
+## Rule 1 — arguments run before the call
 
-An effectful expression performs its effects at the point it appears. Arguments are evaluated
-before the call, left to right, exactly as in any strict language:
+Eliot is strict. Every argument is evaluated once, left to right, before the function is entered —
+exactly as in Java, Python or C:
 
 ```eliot
 def choose[A](left: A, right: A, flag: Bool): A = fold(flag, left, right)
@@ -30,18 +32,19 @@ left ran
 right ran
 ```
 
-Both arguments ran, even though `choose` uses only one of them. That is not a wart — it is the same
-thing that happens in Java, Python or C when you call `choose(f(), g())`. The effect is written at
-the call site, so it happens at the call site.
+Both arguments ran, even though `choose` uses only one of them. Nothing in `choose`'s body can change
+that: by the time `choose` starts, its arguments are plain values.
 
-The value of this rule is that it holds *everywhere*, with no exception for generic code. You never
-have to know how generic a function is to know whether your argument runs.
+The rule has no exception for generic code — a parameter typed `A` receives a value like any other —
+so you never have to know how generic a function is to know whether your argument runs. It holds for a
+function-typed parameter too: the argument `s -> printLine(s)` evaluates to a function, which performs
+nothing by itself; the lambda's *body* runs each time the callee applies it.
 
-## Rule 2 — a parameter that must not run its argument says so
+## Rule 2 — a row on a parameter passes the argument unrun
 
-Some functions genuinely need to *not* run an argument: the untaken branch of a conditional, a
-fallback that should only apply on failure, a step a loop runs many times. Those parameters declare
-an **effect row** on their own type:
+Some functions genuinely need to *not* run an argument up front: the untaken branch of a conditional,
+a fallback that should only apply on failure, a step a loop repeats. Those parameters declare an
+**effect row** on their own type:
 
 ```eliot
 def pick[A](left: {} A, right: {} A, flag: Bool): A = fold(flag, left, right)
@@ -53,29 +56,87 @@ def main: {Console} Unit = pick(printLine("left ran"), printLine("right ran"), t
 left ran
 ```
 
-`{} A` in a parameter position is the **empty row**: *"a computation producing an `A`, and I add
-nothing to it"*. The argument arrives **unrun**, and it is up to `pick` whether, when, and how often it
-runs. The declaration is the whole difference between the two programs above — the call sites are
-identical.
+`{} A` in a parameter position reads *"a computation producing an `A`"*. The argument arrives
+**unrun**, and the function decides whether, when and how many times it runs:
 
-Because the row is empty, `pick` neither performs nor handles anything itself: whatever the selected
-arm performs — `Console` here — is the *caller's* effect, bound by the caller's declaration, and
-`pick` is exactly as effectful as the arm it selects. Notice that `pick`'s own result is a plain `A`;
-it declares no row because it performs nothing of its own.
+```eliot
+def twice(action: {} Unit): Unit = {
+   action
+   action
+}
 
-A parameter may also name effects — `value: {Abort} T`, `computation: {Throw[E]} A`. An effect the
-function's own row does not declare is one the function **handles** for its argument; that is what
-makes a [discharger]({{ '/docs/discharging-effects/' | relative_url }}).
+def main: {Console} Unit = twice(printLine("hello"))
+```
+
+```text
+hello
+hello
+```
+
+The declaration is the whole difference between `choose` and `pick` — the call sites are identical.
+A row is the **only** way to delay an argument, so rule 1 is never suspended behind your back: if a
+parameter has no row, its argument has already run.
 
 > **A row accepts a plain value too.** A pure expression is a computation that happens to perform
 > nothing, so it fits a `{} A` slot: `pick("just a string", readLine orElse "", flag)` type-checks.
-> A row parameter says *"may be suspended"*; it never forces the caller to produce an effect.
+> A row parameter says *"may be delayed"*; it never forces the caller to produce an effect.
 {: .note}
 
-## Reading the rule off the standard library
+A `data` field holds an unrun computation the same way, by giving the field a row: building the value
+does not run it, reading the field does
+([storing a computation]({{ '/docs/implementations/' | relative_url }}#storing-a-computation-in-a-data-field)).
 
-Every laziness-requiring function in the standard library declares it, so the signatures tell you
-what runs:
+## Rule 3 — an effect is provided where it is written
+
+Rules 1 and 2 say *when* an effect runs. They say nothing about *whose* implementation it runs on — and
+that is deliberate, because that answer never depends on when or where the code eventually runs. Every
+effectful call takes its implementation from the code around the place **you wrote it**:
+
+- a [`with`]({{ '/docs/implementations/' | relative_url }}#choosing-a-different-implementation-with)
+  around it, or a parameter it is written in whose row provides that effect (see below) — whichever
+  is nearer;
+- otherwise, the row of the function you wrote it in — which means that function's **caller** provides
+  it, and so on up to `main`, where the platform does.
+
+Handing your code to someone else to run does not change this:
+
+```eliot
+implement recordingConsole: Console {
+   def printLine(s: String): {Writer[String]} Unit = tell(s ++ ";")
+   def readLine: Option[String] = None
+}
+
+def recorded: String = runWriterToLog(twice(printLine("x")) with recordingConsole)
+```
+
+`recorded` is `"x;x;"`. The `printLine("x")` runs inside `twice`, twice, but it was *written* inside
+the `with`, so both lines go to the recording console. `twice` cannot see or replace the console its
+argument uses: its parameter's row is empty, so it provides nothing.
+
+### Every row says who provides
+
+That gives each row in a signature a single reading: **a row lists effects that someone other than the
+code itself provides.** Which someone depends only on where the row stands:
+
+- **On a function's result**, `def greet: {Console} Unit`, the row is a requirement on the **caller**:
+  whoever calls `greet` provides a `Console` — by declaring it in turn, by binding one with `with`, or
+  by handling it.
+- **On a parameter**, `computation: {Throw[E]} A`, an entry the function's own result row does not
+  list is one **the function** provides for that argument. That is all a
+  [discharger]({{ '/docs/discharging-effects/' | relative_url }}) is: `catch` provides `Throw[E]` to its
+  computation by installing the handler a `raise` exits to. An entry the function's result row *does*
+  list is simply passed on to its own caller — `if(condition, value: {Abort} T): {Abort} T` hands
+  `value`'s `Abort` up.
+- **`{}`** names nothing: a computation that gets nothing from the function it is handed to, so every
+  effect in it stays provided by you.
+
+The same goes for lambdas. A lambda's body is code you wrote, so its effects are provided where the
+lambda is written, however many times the callee applies it.
+
+## Reading the rules off the standard library
+
+Every function in the standard library that delays an argument declares it, so the signatures tell you
+what runs, and who handles what:
 
 ```eliot
 def fold[A](condition: Bool, whenTrue: {} A, whenFalse: {} A): A
@@ -84,12 +145,15 @@ def else[A](computation: {Abort} A, fallback: {} A): A
 def foreach[A](action: A => {} Unit, list: List[A]): Unit
 ```
 
-- `fold`'s two arms are suspended, so **only the selected branch runs** — which is what makes
-  `if..else` behave like the conditional you expect, since `if(c, v)` is just `fold(c, v, abort)`.
-- `else`'s `computation` names `Abort`, which `else` itself does not declare — so `else` handles it.
-  Its `fallback` is suspended, so it costs nothing when the computation succeeds.
-- `foreach`'s `action` is an arrow whose *codomain* carries a row, so the callback may be effectful
-  and `foreach` is effectful exactly when the callback is:
+- `fold`'s two arms are delayed, so **only the selected branch runs** — which is what makes `if..else`
+  behave like the conditional you expect, since `if(c, v)` is just `fold(c, v, abort)`. Both arms are
+  `{}`, so `fold` provides nothing: whatever the selected arm performs is yours.
+- `if` lists `Abort` in its own result row, so `value`'s `Abort` is passed on to `if`'s caller.
+- `else`'s `computation` names `Abort`, which `else` itself does not declare — so `else` provides it,
+  and handles it. Its `fallback` is delayed too, so it costs nothing when the computation succeeds.
+- `foreach`'s `action` is a function, so `foreach` decides how often its body runs — once per element —
+  while the lambda's effects are provided where you wrote it. `foreach` is effectful exactly when the
+  callback is:
 
 ```eliot
 import eliot.collection.List
@@ -100,26 +164,21 @@ def main: {Console} Unit = names.foreach(n -> printLine(n))
 ```
 
 A function whose parameters carry no rows — `printLine`, `append`, your own `def area(r: Rect)` —
-runs each argument exactly once, right there. That is the common case, and it needs no annotation.
+receives each argument already run, once. That is the common case, and it needs no annotation.
 
-## Rule 3 — a plain type parameter is a value, never a computation
+## A dot chain carries values
 
-The third rule is what makes the first two trustworthy: **an effect passes into a position only if
-that position declares a row.** A plain type parameter — `A`, `B`, `T` — is a *payload*. It stands
-for a value, and it can never stand for an unrun computation.
-
-So a function that transports effects has to say so. Compare:
+Rule 1 has one consequence worth seeing once, because it hides behind an operator rather than a
+function call. The [dot operator]({{ '/docs/dot-operator/' | relative_url }}) is an ordinary
+definition:
 
 ```eliot
-def use[A, B](a: A, f: A => B): B             // f's body may not reach the caller's effects
-def .[A, B](a: A, f: A => {} B): B            // the real dot operator
+def .[A, B](a: A, f: A => {} B): B = f(a)
 ```
 
-The dot operator's *function* slot declares a row, so `names.foreach(…)` and `lines.foldLeft(…)`
-carry your effects through the chain, bound by your declarations. Its *subject* slot does not, so
-the subject is a plain value: whatever it performs runs **before** the dot, exactly as rule 1 says.
-That is usually what you want — `readLine.foldOption("", s -> s)` reads a line, then folds it — but
-it means a discharger cannot take its computation through the dot:
+Its *subject* `a: A` declares no row, so the subject is an ordinary argument: whatever it performs runs
+**before** the dot. That is usually what you want — `readLine.foldOption("", s -> s)` reads a line,
+then folds it — but it means a discharger cannot take its computation through the dot:
 
 ```eliot
 def bad: Pair[String, String] = swap("second").runStateToPair("first")
@@ -130,8 +189,9 @@ error: This value performs the effect 'State' but does not declare it;
        add it to its { ... } effect set.
 ```
 
-`swap("second")` ran in `bad` itself, before `runStateToPair` was called, so the `State` it performs
-is `bad`'s. The fix is to put the computation where the discharger can receive it unrun:
+`swap("second")` ran in `bad` itself, before `runStateToPair` was called, so the `State` it performs is
+`bad`'s to provide — and `bad` declares nothing. The fix is to put the computation where the discharger
+receives it unrun:
 
 > **Hand dischargers their computation as an argument.** Write
 > `runStateToPair("first", swap("second"))`, `runThrow(parse(raw))`, `runAbort(lookup(key))`. The
@@ -141,33 +201,28 @@ is `bad`'s. The fix is to put the computation where the discharger can receive i
 
 Everything else dot-chains as before: `names.foreach(…)`, `outcome.second`, `option.foldOption(…)`.
 
-The same rule covers lambdas. A lambda passed where the arrow's result declares no row — `use`'s
-`f: A => B` above — may perform and handle effects *inside itself*, but cannot reach the effects its
-enclosing function declares; anything it performs and does not handle is an error at the lambda.
+## The rules on one page
 
-## Why the rules are worth it
+| The parameter's type | When your argument runs | Who provides its effects |
+|---|---|---|
+| no row: `String`, `A`, `Rect` | before the call, once | you |
+| a function: `A => {} B` | the lambda is a value; its body runs each time the callee applies it | you |
+| an empty row: `{} A` | when the callee runs it — maybe never, maybe many times | you |
+| a row naming effects: `{Throw[E]} A` | when the callee runs it | the callee, for each effect its own result row does not list; you, for the rest |
 
-The alternative — which Eliot did try — is to let the compiler decide per call site whether an
-argument runs, inferring it from how generic the callee happens to be. That costs you the ability to
-read evaluation order from a signature at all: the same argument at the same slot could run, or not,
-depending on what a *sibling* argument's type turned out to be.
-
-The three rules replace that with something you can hold in your head:
-
-| The slot's declared type | What happens to your argument |
-|---|---|
-| a plain type (`String`, `A`, `Rect`) | runs here, once, before the call |
-| a row (`{} A`, `{Abort} T`, `{Throw[E]} A`) | passed unrun; the callee decides |
-| an arrow with a row in its codomain (`A => {} B`) | your lambda's body runs when the callee applies it |
-
-Three shapes, no inference, no per-function folklore.
+Two questions, two answers, both read off the declaration, and nothing inferred. The alternative —
+which Eliot did try — is to let the compiler decide per call site whether an argument runs, from how
+generic the callee happens to be. That costs you the ability to read evaluation order from a signature
+at all: the same argument at the same slot could run, or not, depending on what a *sibling* argument's
+type turned out to be.
 
 ## In practice
 
-Most days none of this comes up: you write direct-style code, arguments run where you wrote them,
-and the standard library's lazy combinators are already declared correctly. The rules matter when
-you **write a combinator of your own** that must not run an argument — declare the row — and when
-you **discharge an effect** — hand the discharger its computation as an argument.
+Most days none of this comes up: you write direct-style code, arguments run where you wrote them, your
+caller provides what your row declares, and the standard library's delaying combinators are already
+declared correctly. The rules matter when you **write a combinator of your own** that must not run an
+argument — declare the row — and when you **discharge an effect** — hand the discharger its
+computation as an argument.
 
 Next: the effects that ship with the language —
 [the effect catalogue]({{ '/docs/effect-catalogue/' | relative_url }}).

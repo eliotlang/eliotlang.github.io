@@ -189,8 +189,8 @@ receives the implementation its caller had, so the one decision made at the top 
 
 ## What the rest of this part covers
 
-- **[When effects run]({{ '/docs/effect-evaluation/' | relative_url }})** — evaluation order, and
-  the one rule that makes it readable from a signature.
+- **[When effects run]({{ '/docs/effect-evaluation/' | relative_url }})** — when an effect runs,
+  and whose implementation it uses, both read off a signature.
 - **[The effect catalogue]({{ '/docs/effect-catalogue/' | relative_url }})** — the shipped effects,
   their operations, and how each is discharged.
 - **[Discharging effects]({{ '/docs/discharging-effects/' | relative_url }})** — turning effectful

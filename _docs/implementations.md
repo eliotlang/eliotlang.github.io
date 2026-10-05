@@ -48,14 +48,14 @@ effect operation costs exactly what a function call costs.
 For every effectful call, the compiler picks the implementation by walking outward from the call,
 and stops at the first of these that applies:
 
-1. the nearest enclosing **`with`** for that effect (see below);
-2. the enclosing function's own row — the implementation it **received from its caller**;
-3. a **discharging parameter** the call sits in — `catch`, `else`, `runStateToPair` and friends
-   supply the implementation of the effect they discharge;
-4. otherwise, for an effect, nothing — that is the familiar *"performs the effect but does not
+1. the nearest enclosing **`with`** for that effect (see below), or **discharging parameter** the
+   call sits in — `catch`, `else`, `runStateToPair` and friends supply the implementation of the
+   effect they discharge — whichever is nearer;
+2. otherwise, the enclosing function's own row — the implementation it **received from its caller**;
+3. otherwise, for an effect, nothing — that is the familiar *"performs the effect but does not
    declare it"* error, reported at the call.
 
-At the top, the platform's entry point binds the defaults for `main`'s row, and from there rule 2
+At the top, the platform's entry point binds the defaults for `main`'s row, and from there step 2
 carries them down. The whole decision is read off declarations, per call, in source order; there is
 nothing for the compiler to guess and no ordering it could get wrong.
 
@@ -77,7 +77,7 @@ def transcript: String = runWriterToLog(greeting("Bob") with recordingConsole)
 ```
 
 `with` binds a name for its subject: every `Console` call lexically inside `greeting("Bob")` — and,
-through rule 2, everything `greeting` calls — uses `recordingConsole`. It is infix, binds loosest of
+through step 2, everything `greeting` calls — uses `recordingConsole`. It is infix, binds loosest of
 all operators, and reads left to right, so `program with fakeConsole with fakeFileSystem` replaces
 two effects and leaves every other one at its default.
 
