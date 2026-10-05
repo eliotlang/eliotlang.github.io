@@ -3,7 +3,7 @@ title: The effect catalogue
 nav_title: Effect catalogue
 order: 18
 part: Effects
-summary: The shipped effects — Console, Log, Throw, Abort, State, Writer, Dep, and Inf — with their operations, dischargers, and whether each can be stored in a pinned row.
+summary: The shipped effects — Console, Log, Throw, Abort, State, Writer, Dep, and Inf — with their operations, and how each is discharged or implemented.
 ---
 
 Eliot ships a small set of built-in effects. Each brings a few operations and has a matching way to
@@ -12,35 +12,37 @@ discharge it. This chapter is the reference tour; skim it once, then come back t
 
 The one-table view, before the details:
 
-| Effect | Operations | Discharged by | Storable? |
-|---|---|---|---|
-| `{Console}` | `printLine(s)`, `readLine` | run by the platform (may reach `main`) | no |
-| `{Log}` | `log(s)` | run by the platform (may reach `main`) | no |
-| `{Abort}` | `abort` (untyped short-circuit) | infix `else`; `runAbort` → `Option[A]` | yes |
-| `{Throw[E]}` | `raise(err)`, `orRaise(either)` | infix `catch (e -> …)`; `runThrow` → `Either[E, A]` | yes |
-| `{State[S]}` | `state`, `putState(s)`, `updateState(f)` | `runStateToPair` / `runStateToValue` / `runStateToFinalState` | yes |
-| `{Writer[W]}` | `tell(w)` | `runWriterToPair` / `runWriterToValue` / `runWriterToLog` | yes |
-| `{Dep[X]}` | `dependency` (type-dispatched read) | `provide(value, computation)` | yes |
-| `{Inf}` | `forever(step)` | never discharged — may reach `main` | no |
+| Effect | Operations | Handled by |
+|---|---|---|
+| `{Console}` | `printLine(s)`, `readLine` | the platform's default at `main`; a test's fake via `with` |
+| `{Log}` | `log(s)` | the platform's default at `main`; a test's fake via `with` |
+| `{Abort}` | `abort` (untyped short-circuit), `orAbort(option)` | infix `else`; `runAbort` → `Option[A]` |
+| `{Throw[E]}` | `raise(err)`, `orRaise(either)` | infix `catch (e -> …)`; `runThrow` → `Either[E, A]` |
+| `{State[S]}` | `state`, `putState(s)`, `updateState(f)` | `runStateToPair` / `runStateToValue` / `runStateToFinalState` |
+| `{Writer[W]}` | `tell(w)` | `runWriterToPair` / `runWriterToValue` / `runWriterToLog` |
+| `{Dep[X]}` | `dependency` (type-dispatched read) | `provide(value, computation)` |
+| `{Inf}` | `forever(step)` | never discharged — run by the platform at `main` |
 
 Every effect above is **ambient**: the whole `eliot.effect` package is auto-imported, operations and
 dischargers included, so none of the code below needs an import line.
 
-The last column is about storing a computation in a `data` field, which needs a
-[pinned row]({{ '/docs/carriers/' | relative_url }}#pinned-rows-a-row-that-is-a-type). The five
-*control* effects have a pure meaning, so they can be stored; the platform-bound ones cannot —
-handle them before you store.
+They come in two families. `Console` and `Log` are **interpretation effects**: the platform ships a
+default implementation, and a test or an application may bind another with
+[`with`]({{ '/docs/implementations/' | relative_url }}). The rest are **control effects**: one
+implementation per platform, nothing to choose, and you *discharge* them instead. Any of them may be
+stored in a [`data` field]({{ '/docs/implementations/' | relative_url }}#storing-a-computation-in-a-data-field).
 
 ## `Console` — talk to the outside
 
 ```eliot
-def echo: {Console} Unit = printLine(readLine)
+def echo: {Console} Unit = printLine(readLine orElse "(no input)")
 ```
 
-`printLine(s)` writes a line; `readLine` yields one (a plain `String`, direct style). There is no
-in-language discharger — `Console` is performed by the platform, so it typically floats all the way
-to `main`. In tests, handle it before asserting, or structure the code so the logic under test
-doesn't print.
+`printLine(s)` writes a line; `readLine` yields one as an `Option[String]` — `None` at the end of
+input, which is an ordinary outcome rather than a failure. Supply a default with `orElse`, or turn it
+into an `{Abort}` with `orAbort(readLine)`. There is no discharger — `Console` is performed by the
+platform's implementation, so it typically floats all the way to `main`. In tests, bind a fake
+console with `with` (see [Testing effects]({{ '/docs/testing-effects/' | relative_url }})).
 
 ## `Log` — diagnostics
 
@@ -88,7 +90,7 @@ error-as-value result from a native library enters the effect world:
 def parsed(input: String): {Throw[String]} Tree = orRaise(tryParse(input))
 ```
 
-Different error types compose freely in one row, and each `catch` picks its layer by the handler's
+Different error types compose freely in one row, and each `catch` picks its error type by the handler's
 parameter type:
 
 ```eliot
@@ -114,11 +116,12 @@ def tick: {State[Int]} Unit = updateState(n -> n + 1)
 ```
 
 `state` reads the current value, `putState(s)` replaces it, and `updateState(f)` is the
-read-modify-write convenience. Nothing actually mutates — the state is threaded through the
-computation — which is why a `{State[S]}` function stays pure enough to run in a test.
+read-modify-write convenience. The state lives in a cell that the discharger creates for the duration
+of its call and nothing else can reach, so a `{State[S]}` function is still deterministic and runs
+in a test like any pure function.
 
 Discharge by running from an initial value; note the initial value comes **first**, and the
-computation is passed directly rather than dot-chained:
+computation is passed as an argument rather than dot-chained:
 
 ```eliot
 def demo: Pair[String, String] = runStateToPair("first", swap("second"))
@@ -162,7 +165,7 @@ dependency type.
 ## `Inf` — deliberately forever
 
 ```eliot
-def serve: {Console, Inf} Unit = forever(printLine(readLine))
+def serve: {Console, Inf} Unit = forever(printLine(readLine orElse "(no input)"))
 ```
 
 Eliot programs [terminate by default]({{ '/docs/totality/' | relative_url }}); `Inf` is the opt-out.
@@ -183,13 +186,21 @@ import eliot.file.Path
 def greetingFrom(p: Path): {FileSystem, Throw[IoError]} String = readFile(p)
 ```
 
-This is the shape every library effect takes — an `ability` plus operations — and it is exactly what
-your own effects will look like. Defining one needs no compiler support:
+This is the shape every library effect takes — an `effect` declaration plus operations — and it is
+exactly what your own effects will look like. Defining one needs no compiler support:
 
 ```eliot
-ability Metric[F[_]] {
-   def count(name: String): F[Unit]
+effect Metric {
+   def count(name: String): Unit
+}
+
+def handle(request: String): {Metric, Console} Unit = {
+   count("requests")
+   printLine(request)
 }
 ```
+
+A new effect has no default implementation until someone writes one — an anonymous `implement
+Metric { … }` in its module for production, or a named one a test binds with `with`.
 
 Next: how effects leave a row — [Discharging effects]({{ '/docs/discharging-effects/' | relative_url }}).
