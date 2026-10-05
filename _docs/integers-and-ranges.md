@@ -64,19 +64,6 @@ lands in the range around `21` — the result *grows to fit* instead of silently
 32-bit machine that's convenient; on a microcontroller where every byte is counted, it's the whole
 point.
 
-## The `a - 1` gotcha
-
-There is one lexical trap. A `-` glued directly to digits is read as a **negative literal**, not
-subtraction:
-
-```eliot
-a - 1      // subtraction — note the spaces
-a-1        // NOT subtraction: lexes as `a` followed by the literal `-1`
-```
-
-Always put spaces around binary `-`. (Addition and multiplication don't have this issue, but spacing
-all your operators is the habit to build.)
-
 ## Reading a value's range
 
 The range isn't only for the compiler's eyes — you can name it. The `range` accessor gives you a

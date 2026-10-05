@@ -30,7 +30,6 @@ newcomers. Keep this open while you write your first programs.
 - Juxtaposition binds tighter than `.` and every infix operator: `printLine msg.content` is wrong;
   parenthesize.
 - Effect rows wrap the plain type: `{Console} Unit`, never `{Console} IO[Unit]`.
-- `a-1` lexes as `a` then `-1`; write `a - 1`.
 - A lowercase name in a `case` is a binder, not a constructor; there are no literal patterns.
 - Arguments run where they are written; only a parameter that declares an effect row is suspended.
 - Call dischargers directly (`runThrow(parse(raw))`), don't dot-chain them.
