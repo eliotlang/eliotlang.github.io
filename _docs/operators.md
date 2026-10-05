@@ -3,18 +3,19 @@ title: Operators and fixity
 nav_title: Operators & fixity
 order: 9
 part: Core language
-summary: Naming definitions with operator symbols, and declaring their fixity and precedence as a partial order.
+summary: Any def becomes an operator by declaring its fixity, whatever its name, with precedence declared as a partial order.
 ---
 
-Operators in Eliot aren't a special language feature — they're ordinary definitions with symbolic
-names. `+`, `&&`, and `.` are all just `def`s. That means you can define your own, and you control
-exactly how they parse.
+Operators in Eliot aren't a special language feature — they're ordinary definitions with a **fixity
+declaration** in front. `+`, `&&`, `else` and `.` are all just `def`s. What makes a `def` an operator
+is that declaration and nothing else: the name doesn't matter, so a word works exactly as well as a
+symbol.
 {: .docs-lead}
 
 ## An operator is just a def
 
-Give a `def` a symbolic name and declare its fixity, and you have an infix operator. Here is the whole
-of `Operators.els`:
+Put a fixity declaration in front of a `def`, and you have an operator. Here is the whole of
+`Operators.els`:
 
 ```eliot
 def main: {Console} Unit = printLine(content(Cell("Hello") | Cell("World") | Cell("!")))
@@ -30,9 +31,30 @@ and left-associative, so `Cell("Hello") | Cell("World") | Cell("!")` parses as
 `(Cell("Hello") | Cell("World")) | Cell("!")`. This particular `|` just keeps its right operand, so
 the program prints `!`.
 
-Operator names are built from the symbol characters `! # $ % & * + . / < = > ? @ \ ^ | - ~ ;`. A few
-combinations are reserved by the grammar (`(` `)` `[` `]` `{` `}` `,` `->` `_` `::` `:` `~` `&` `=`),
-but otherwise you're free — `|>`, `<=>`, `++` are all valid names.
+The name plays no part in this. An ordinary word with the same declaration is just as much an
+operator — from `HandleWith.els`:
+
+```eliot
+infix def or(s1: String, s2: String): String = s1
+
+def main: {Console} Unit = printLine(something(Else) or greet(Goodbye))
+```
+
+`or` reads as an infix word between its operands. You've already been using prelude examples of this:
+the `else` that pairs with `if`, and the `catch` that recovers a `Throw`, are both infix `def`s with
+ordinary names — which is why `parseBad catch (err -> err)` reads the way it does. Everything on this
+page — associativity, prefix and postfix, precedence — applies to a word exactly as it does to a
+symbol.
+
+It works the other way round too: a `def` with a symbolic name and **no** fixity declaration is not
+an operator at all, just a function you call like any other — `<>(a, b)`.
+
+> **Symbolic names.** A name may be built from the symbol characters
+> `! # $ % & * + . / < = > ? @ \ ^ | - ~ ;`. A few combinations are reserved by the grammar (`(` `)`
+> `[` `]` `{` `}` `,` `->` `_` `::` `:` `~` `&` `=`), but otherwise you're free — `|>`, `<=>`, `++`
+> are all valid names. That's a rule about names, not about operators: a symbolic name is simply what
+> you'd usually choose for one.
+{: .note}
 
 ## Fixity and associativity
 
@@ -77,20 +99,6 @@ operator is declared).
 > guess. Relate them explicitly, or parenthesize. This is deliberate: it removes the "I can never
 > remember the precedence table" class of bugs.
 {: .warn}
-
-## Alphanumeric operators
-
-Fixity isn't limited to symbols — an ordinary name can be infix too. From `HandleWith.els`:
-
-```eliot
-infix def or(s1: String, s2: String): String = s1
-
-def main: {Console} Unit = printLine(something(Else) or greet(Goodbye))
-```
-
-`or` reads as an infix word between its operands. You've already been using prelude examples of this:
-the `else` that pairs with `if`, and the `catch` that recovers a `Throw`, are both infix operators —
-which is why `parseBad catch (err -> err)` reads the way it does.
 
 Operators are a small feature with a big payoff: the effect-discharge combinators (`else`, `catch`,
 `orElse`) are all just infix `def`s, so the language's most powerful machinery reads like plain
