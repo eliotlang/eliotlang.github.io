@@ -41,7 +41,7 @@ def swap(next: String): {State[String]} String = {
 }
 
 def testSwap: Pair[String, String] = runStateToPair("first", swap("second"))
-// Pair("first", "second") — the returned old value, and the final state
+// pair("first", "second") — the returned old value, and the final state
 ```
 
 Note what you did *not* do: change `swap` for testability, inject a fake, or mention a carrier. The

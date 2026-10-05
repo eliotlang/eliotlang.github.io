@@ -122,7 +122,7 @@ computation is passed directly rather than dot-chained:
 
 ```eliot
 def demo: Pair[String, String] = runStateToPair("first", swap("second"))
-// Pair("first", "second") — the returned old value, and the final state
+// pair("first", "second") — the returned old value, and the final state
 ```
 
 `runStateToValue` keeps only the result, `runStateToFinalState` only the final state.
@@ -136,7 +136,7 @@ def notes: {Writer[String]} Unit = {
 }
 
 def collected: Pair[Unit, String] = runWriterToPair(notes)
-// Pair(unit, "first second")
+// pair(unit, "first second")
 ```
 
 `tell(w)` appends to an accumulated log; the pieces are joined with `W`'s
