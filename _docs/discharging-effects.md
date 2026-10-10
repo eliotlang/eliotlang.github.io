@@ -194,8 +194,10 @@ error: 'body' is given the effect 'Console' here, which this definition has no i
 ```
 
 The default implementation of `Console` is handed out at `main` and nowhere else, so a function
-cannot quietly print on behalf of code that never declared it. A discharger can only ever give what
-it discharges, or what it was given itself.
+cannot quietly print on behalf of code that never declared it. A function with a body can give its
+code only what it hands on to a discharger — or what a `with` on the parameter names, which the
+[Implementations chapter]({{ '/docs/implementations/' | relative_url }}#with-on-a-parameter) shows.
+Everything else the code brings along from where it was written.
 
 > **In one sentence.** A discharger is a function whose parameter is given an effect; it runs your
 > computation inside a handler for that effect and returns a plain value, so the effect never reaches

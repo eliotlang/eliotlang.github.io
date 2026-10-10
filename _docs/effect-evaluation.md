@@ -91,6 +91,9 @@ def foreach[A](action uses *: A => Unit, list: List[A]): Unit
   `if..else` behave like the conditional you expect, since `if(c, v)` is just `fold(c, v, abort)`.
 - `else`'s `computation` is given `Abort`, which `else` itself does not declare — so `else` handles
   it. Its `fallback` is code too, so it costs nothing when the computation succeeds.
+- `if` lists `Abort` on its `value` *and* declares `uses Abort` itself. An effect the callee
+  already declares is not given but **shared**: a nested bare `if` in the value aborts through the
+  same `Abort` as the `if` around it, and one `else` outside handles both.
 - `foreach`'s `action` is code that takes an argument: your lambda, run once per element, using
   your effects. `foreach` declares no `uses`, and a call to it performs exactly what your lambda
   does:
