@@ -25,12 +25,12 @@ runaway.
 - **Recursive *types* are fine** in the covariant position (`data Tree(value: Int, left: Tree, right:
   Tree)`); it's recursive *values* that are forbidden. Negative recursion is rejected by strict
   positivity.
-- **Unbounded loops** — the one controlled exception — live behind the `{Inf}` effect's
+- **Unbounded loops** — the one controlled exception — live behind the `Inf` effect's
   `forever(step)`, used for server and firmware event loops, and covered in the Effects part.
 
 ## In the meantime
 
 - Every `foldX` you've already met is the total substitute for a loop — see
   [Everyday types]({{ '/docs/everyday-types/' | relative_url }}).
-- The `{Inf}` effect appears in the
+- The `Inf` effect appears in the
   [effect catalogue]({{ '/docs/effect-catalogue/' | relative_url }}).

@@ -3,22 +3,22 @@ title: Combining and ordering effects
 nav_title: Combining effects
 order: 21
 part: Effects
-summary: How several effects combine in one row, and how the order you discharge them decides how they interact.
+summary: How several effects combine in one uses clause, and how the order you discharge them decides how they interact.
 ---
 
-A function can use several effects at once — the row is just their union. When effects *don't
+A function can use several effects at once — its `uses` clause just lists them all. When effects *don't
 commute*, the **order you discharge them in** decides how they interact, and Eliot makes that choice
 explicit at the call site rather than baking it into a type.
 {: .docs-lead}
 
-## A row is a union
+## A `uses` clause is a set
 
 Using several effects together needs no ceremony — declare the union, call things:
 
 ```eliot
 data Database(url: String)
 
-def run: {Dep[Database], Log, Console} Unit = {
+def run uses Dep[Database], Log, Console: Unit = {
    log(dependency.url)
    printLine(readLine orElse "(no input)")
 }
@@ -26,15 +26,15 @@ def run: {Dep[Database], Log, Console} Unit = {
 
 There is no nesting and no transformer order in that signature: each effect is received from the
 caller independently, the block runs the steps in order, and the set is unordered
-(`{Log, Dep[Database], Console}` is the same row). The same effect can even appear twice at different
-types — `{Throw[NetError], Throw[ParseError]}`, `{Dep[Database], Dep[Topic]}` — and each use finds its
-own handler.
+(`uses Log, Dep[Database], Console` says the same). The same effect can even appear twice at
+different types — `uses Throw[NetError], Throw[ParseError]`, `uses Dep[Database], Dep[Topic]` — and
+each use finds its own handler.
 
 Discharge still happens one effect at a time, each discharger handling one effect while the rest
 keep floating:
 
 ```eliot
-def main: {Console, Log} Unit = provide(Database("jdbc://app-db"), run)
+def main uses Console, Log: Unit = provide(Database("jdbc://app-db"), run)
 ```
 
 ## When order doesn't matter — and when it does
@@ -44,15 +44,15 @@ a `Dep`, same result. The interesting case is effects that *interact* — classi
 failure effect. Consider one program that modifies state and then aborts:
 
 ```eliot
-def reject(value: String): {Abort} String = abort
+def reject(value: String) uses Abort: String = abort
 
-def modifyThenAbort: {State[String], Abort} String = {
+def modifyThenAbort uses State[String], Abort: String = {
    putState("modified")
    reject("modified")
 }
 ```
 
-Does the abort roll back the state? **The flat row deliberately doesn't say.** You decide at the
+Does the abort roll back the state? **The flat `uses` clause deliberately doesn't say.** You decide at the
 boundary, by the order you nest the dischargers:
 
 ```eliot

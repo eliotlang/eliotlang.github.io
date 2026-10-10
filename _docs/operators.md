@@ -18,7 +18,7 @@ Put a fixity declaration in front of a `def`, and you have an operator. Here is 
 `Operators.els`:
 
 ```eliot
-def main: {Console} Unit = printLine(content(Cell("Hello") | Cell("World") | Cell("!")))
+def main uses Console: Unit = printLine(content(Cell("Hello") | Cell("World") | Cell("!")))
 
 data Cell(content: String)
 
@@ -37,7 +37,7 @@ operator — from `HandleWith.els`:
 ```eliot
 infix def or(s1: String, s2: String): String = s1
 
-def main: {Console} Unit = printLine(something(Else) or greet(Goodbye))
+def main uses Console: Unit = printLine(something(Else) or greet(Goodbye))
 ```
 
 `or` reads as an infix word between its operands. You've already been using prelude examples of this:

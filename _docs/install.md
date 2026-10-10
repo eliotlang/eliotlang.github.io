@@ -57,7 +57,7 @@ Line by line:
 Here is the whole program. Save it as `src/HelloWorld.els`:
 
 ```eliot
-def main: {Console} Unit = printLine("Hello World!")
+def main uses Console: Unit = printLine("Hello World!")
 ```
 
 Build it and run it:
@@ -85,7 +85,7 @@ java -jar target/HelloWorld.jar
 Two lines, and every part is worth naming.
 
 ```eliot
-def main: {Console} Unit = printLine("Hello World!")
+def main uses Console: Unit = printLine("Hello World!")
 ```
 
 - **`printLine`** comes from the `Console` *effect*. Core names (the `eliot.lang` basics like
@@ -96,18 +96,20 @@ def main: {Console} Unit = printLine("Hello World!")
 - **`def main`** declares the program's entry point. `def` introduces a *named value*, the closest
   thing Eliot has to a "function" or a top-level binding. We'll unpack `def` in the next chapter.
 
-- **`: {Console} Unit`** is the return type, and it is **mandatory** on every `def`. `main` yields
-  `Unit` (the "no interesting value" type, with a single value), and the `{Console}` in braces
-  declares that it *may use the console* along the way.
+- **`uses Console`** declares that `main` *uses the console* along the way. A function lists the
+  effects it uses in a `uses` clause like this one, before the colon.
+
+- **`: Unit`** is the return type, and it is **mandatory** on every `def`. `main` yields `Unit` (the
+  "no interesting value" type, with a single value).
 
 - **`= printLine("Hello World!")`** is the body. `printLine` takes a `String` and performs the
   `Console` effect to write it.
 
-> **Why `{Console} Unit` and not just "print something"?** In Eliot, performing input/output is an
-> *effect*, declared right in the type. `main` is the one place where the platform finally runs the
+> **Why `uses Console` and not just "print something"?** In Eliot, performing input/output is an
+> *effect*, declared right in the signature. `main` is the one place where the platform finally runs the
 > effects it declares. Everywhere else, effectful code stays abstract over how it runs, which is what
 > makes it testable and portable. This is the heart of the
-> [Effects]({{ '/docs/effects/' | relative_url }}) part. For now, read `{Console} Unit` as "prints
+> [Effects]({{ '/docs/effects/' | relative_url }}) part. For now, read `uses Console: Unit` as "prints
 > things, returns nothing interesting".
 {: .note}
 

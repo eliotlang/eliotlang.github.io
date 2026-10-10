@@ -4,7 +4,7 @@ nav_title: Modules & imports
 order: 23
 part: In the large
 stub: true
-summary: One file is one module, how names resolve per file, the auto-imported prelude, and why effects always need an import.
+summary: One file is one module, how names resolve per file, and the auto-imported prelude and effect vocabulary.
 ---
 
 Every `.els` file is a module, and its name comes from its path. Understanding how names resolve —
@@ -29,12 +29,15 @@ and what's ambient versus import-required — removes most "unknown name" surpri
   > shadows. Only import what isn't already ambient.
   {: .warn}
 
-- **Effects are always import-required**: everything in `eliot.effect` (`Console`, `Log`, `Throw`,
-  `Abort`, `State`, `Dep`, `Inf`, …) must be imported explicitly.
+- **The effect vocabulary is ambient too**: everything in `eliot.effect` (`Console`, `Log`, `Throw`,
+  `Abort`, `State`, `Dep`, `Inf`, …, with their operations and dischargers) needs no import, and a
+  local declaration of the same name quietly wins over it. Library effects outside that package, such
+  as `eliot.file.File`'s `FileSystem`, are imported like any other module.
 - **Per-file resolution**: a file sees its own declarations plus its imports — never names declared in
   a sibling file of the same module.
 
 ## In the meantime
 
 - Every example in this guide shows the import discipline in practice — note how they import
-  `eliot.effect.*` but never `eliot.lang.*`.
+  modules such as `eliot.collection.List` or `eliot.file.File`, but never `eliot.lang.*` or
+  `eliot.effect.*`.

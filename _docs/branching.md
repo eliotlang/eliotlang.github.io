@@ -14,10 +14,10 @@ them is special to the compiler.
 ## `if..else`
 
 ```eliot
-def classify(n: Int): {Console} Unit =
+def classify(n: Int) uses Console: Unit =
   printLine(if(n > 0) "positive" else if(n < 0) "negative" else "zero")
 
-def main: {Console} Unit = classify(42)
+def main uses Console: Unit = classify(42)
 ```
 
 This prints `positive`. The condition goes in parentheses, the value follows it, and `else` supplies
@@ -29,8 +29,8 @@ the way you'd expect. Both branches must yield the same type.
 Here are the two signatures, straight from the standard library:
 
 ```eliot
-def if[T](condition: Bool, value: {Abort} T): {Abort} T
-def else[A](computation: {Abort} A, fallback: {} A): A
+def if[T](condition: Bool, value uses *, Abort: T) uses Abort: T
+def else[A](computation uses *, Abort: A, fallback uses *: A): A
 ```
 
 Everything about the familiar syntax falls out of ordinary rules:
@@ -43,15 +43,18 @@ Everything about the familiar syntax falls out of ordinary rules:
   parentheses.
 - **The branches don't run early, because the signatures say so.** In most languages a function's
   arguments are evaluated before the call, which is exactly why `if` has to be built into the
-  language there. In Eliot an argument also runs before the call — *unless the parameter declares an
-  effect row*. `value: {Abort} T` and `fallback: {} A` both do, so they arrive as suspended
-  computations, and only the branch that is selected ever runs. Laziness isn't a property of `if`;
-  it's something any function can ask for in its signature.
+  language there. In Eliot an argument also runs before the call — *unless the parameter takes
+  code*, which it says with a `uses` clause of its own. `value uses *, Abort: T` and
+  `fallback uses *: A` both do, so they arrive unrun, and only the branch that is selected ever runs.
+  Laziness isn't a property of `if`; it's something any function can ask for in its signature.
+  (The `Abort` in `value`'s clause lets the value abort too — a nested `if` without its own `else` —
+  and that joins the same `Abort` as the `if` around it.)
 - **A false condition is an effect.** When the condition doesn't hold, `if` has no value to give, so
-  it *aborts* — it performs the (ambient) `Abort` effect, which is why its result is `{Abort} T`.
+  it *aborts* — it performs the (ambient) `Abort` effect, which is why `if` declares `uses Abort`.
   `else` takes that possibly-aborting computation and *discharges* the `Abort` by providing the
   fallback, so its result is a plain `A`. When an `if..else` is complete, the `Abort` is fully
-  handled and never appears in your function's type: `classify` above declares only `{Console}`.
+  handled and never appears in your function's signature: `classify` above declares only
+  `uses Console`.
 
 This is your first taste of introducing an effect and then discharging it; the
 [Effects]({{ '/docs/effects/' | relative_url }}) part makes it precise. The practical upshot is that
@@ -60,13 +63,13 @@ yourself with the same tools. The prelude does exactly that with `when` and `unl
 siblings for statements that need no `else`:
 
 ```eliot
-def warnIfEmpty(name: String): {Console} Unit = when(name == "") printLine("no name given")
+def warnIfEmpty(name: String) uses Console: Unit = when(name == "") printLine("no name given")
 ```
 
 ## Pure or effectful, it's the same `if..else`
 
 An `if..else` is an expression like any other, so it works wherever a value is expected. As the body
-of a pure function it just hands you back a plain value — no effect row, no ceremony:
+of a pure function it just hands you back a plain value — no `uses` clause, no ceremony:
 
 ```eliot
 def sign(n: Int): String = if(n > 0) "+" else "-"
@@ -84,7 +87,7 @@ def describe(a: Bool, b: Bool): String = {
 When the branches are effectful computations instead, only the taken branch is ever run:
 
 ```eliot
-def greet(known: Bool, name: String): {Console} Unit =
+def greet(known: Bool, name: String) uses Console: Unit =
    if(known) printLine(name) else printLine("hello, stranger")
 ```
 
@@ -92,7 +95,7 @@ A bare `if` with **no** `else` doesn't discharge the `Abort` — it floats up to
 `if` into a guard. That follows directly from the signature, and it's occasionally what you want:
 
 ```eliot
-def requirePositive(n: Int): {Abort} Int = if(n > 0) n
+def requirePositive(n: Int) uses Abort: Int = if(n > 0) n
 ```
 
 Most of the time, though, you write the `else`.

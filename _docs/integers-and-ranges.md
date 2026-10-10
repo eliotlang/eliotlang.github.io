@@ -33,7 +33,7 @@ Because the compiler knows each operand's range, it knows the result's range too
 **combines** ranges rather than wrapping around a fixed width. Here is the whole of `Arithmetic.els`:
 
 ```eliot
-def main: {Console} Unit = printLine(show(2 + 3 * 4))
+def main uses Console: Unit = printLine(show(2 + 3 * 4))
 ```
 
 This prints `14`. Two things are on display:
@@ -56,7 +56,7 @@ def count: Int = 7
 
 def total: Int = count + count + count
 
-def main: {Console} Unit = printLine(show(total))
+def main uses Console: Unit = printLine(show(total))
 ```
 
 `total` computes `21`. The compiler tracks that `count` is `7`, so it knows `count + count + count`

@@ -44,11 +44,11 @@ val product: Int = width * height
 Not every line in a block needs to bind a name. A line that is just an expression is a **statement**:
 it is performed, and its result is discarded. For a pure value that's pointless, but for an
 *effectful* step — printing a line, updating state — it's exactly right. Here is the shape (the
-`{Console}` effect is covered in the [Effects]({{ '/docs/effects/' | relative_url }}) part; focus on
+`Console` effect is covered in the [Effects]({{ '/docs/effects/' | relative_url }}) part; focus on
 the structure):
 
 ```eliot
-def announce(name: String): {Console} Unit = {
+def announce(name: String) uses Console: Unit = {
   printLine("starting up")     // a bare statement: performed, result discarded
   val greeting = greet(name)   // a val: result bound for later use
   printLine(greeting)          // another bare statement

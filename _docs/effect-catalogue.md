@@ -14,14 +14,14 @@ The one-table view, before the details:
 
 | Effect | Operations | Handled by |
 |---|---|---|
-| `{Console}` | `printLine(s)`, `readLine` | the platform's default at `main`; a test's fake via `with` |
-| `{Log}` | `log(s)` | the platform's default at `main`; a test's fake via `with` |
-| `{Abort}` | `abort` (untyped short-circuit), `orAbort(option)` | infix `else`; `runAbort` → `Option[A]` |
-| `{Throw[E]}` | `raise(err)`, `orRaise(either)` | infix `catch (e -> …)`; `runThrow` → `Either[E, A]` |
-| `{State[S]}` | `state`, `putState(s)`, `updateState(f)` | `runStateToPair` / `runStateToValue` / `runStateToFinalState` |
-| `{Writer[W]}` | `tell(w)` | `runWriterToPair` / `runWriterToValue` / `runWriterToLog` |
-| `{Dep[X]}` | `dependency` (type-dispatched read) | `provide(value, computation)` |
-| `{Inf}` | `forever(step)` | never discharged — run by the platform at `main` |
+| `Console` | `printLine(s)`, `readLine` | the platform's default at `main`; a test's fake via `with` |
+| `Log` | `log(s)` | the platform's default at `main`; a test's fake via `with` |
+| `Abort` | `abort` (untyped short-circuit), `orAbort(option)` | infix `else`; `runAbort` → `Option[A]` |
+| `Throw[E]` | `raise(err)`, `orRaise(either)` | infix `catch (e -> …)`; `runThrow` → `Either[E, A]` |
+| `State[S]` | `state`, `putState(s)`, `updateState(f)` | `runStateToPair` / `runStateToValue` / `runStateToFinalState` |
+| `Writer[W]` | `tell(w)` | `runWriterToPair` / `runWriterToValue` / `runWriterToLog` |
+| `Dep[X]` | `dependency` (type-dispatched read) | `provide(value, computation)` |
+| `Inf` | `forever(step)` | never discharged — run by the platform at `main` |
 
 Every effect above is **ambient**: the whole `eliot.effect` package is auto-imported, operations and
 dischargers included, so none of the code below needs an import line.
@@ -29,25 +29,24 @@ dischargers included, so none of the code below needs an import line.
 They come in two families. `Console` and `Log` are **interpretation effects**: the platform ships a
 default implementation, and a test or an application may bind another with
 [`with`]({{ '/docs/implementations/' | relative_url }}). The rest are **control effects**: one
-implementation per platform, nothing to choose, and you *discharge* them instead. Any of them may be
-stored in a [`data` field]({{ '/docs/implementations/' | relative_url }}#storing-a-computation-in-a-data-field).
+implementation per platform, nothing to choose, and you *discharge* them instead.
 
 ## `Console` — talk to the outside
 
 ```eliot
-def echo: {Console} Unit = printLine(readLine orElse "(no input)")
+def echo uses Console: Unit = printLine(readLine orElse "(no input)")
 ```
 
 `printLine(s)` writes a line; `readLine` yields one as an `Option[String]` — `None` at the end of
 input, which is an ordinary outcome rather than a failure. Supply a default with `orElse`, or turn it
-into an `{Abort}` with `orAbort(readLine)`. There is no discharger — `Console` is performed by the
+into an `Abort` with `orAbort(readLine)`. There is no discharger — `Console` is performed by the
 platform's implementation, so it typically floats all the way to `main`. In tests, bind a fake
 console with `with` (see [Testing effects]({{ '/docs/testing-effects/' | relative_url }})).
 
 ## `Log` — diagnostics
 
 ```eliot
-def audit(action: String): {Log} Unit = log(action)
+def audit(action: String) uses Log: Unit = log(action)
 ```
 
 `log(s)` emits a diagnostic message; the *platform* chooses the destination (stderr on the JVM, a
@@ -57,7 +56,7 @@ Prefer `Log` over `printLine` for anything that isn't the program's actual outpu
 ## `Abort` — fail without a reason
 
 ```eliot
-def lookupConfig(key: String): {Abort} String = abort
+def lookupConfig(key: String) uses Abort: String = abort
 ```
 
 `abort` short-circuits the computation. It stands in for a value of *any* type, so it drops into any
@@ -70,7 +69,7 @@ def tryUrl: Option[String] = runAbort(lookupConfig("db.url"))
 ```
 
 `Abort` is the effect behind a bare `if(condition, value)` — which is why an `if` without an `else`
-is an `{Abort}` expression, and adding the `else` discharges it (see
+uses `Abort`, and adding the `else` discharges it (see
 [Branching]({{ '/docs/branching/' | relative_url }})).
 
 ## `Throw[E]` — fail with a typed error
@@ -78,7 +77,7 @@ is an `{Abort}` expression, and adding the `else` discharges it (see
 ```eliot
 data ParseError(detail: String)
 
-def parse(raw: String): {Throw[ParseError]} Config = raise(ParseError("unexpected token"))
+def parse(raw: String) uses Throw[ParseError]: Config = raise(ParseError("unexpected token"))
 ```
 
 `raise(err)` stops with an error value; like `abort` it stands in for any type. Discharge with the
@@ -87,14 +86,14 @@ infix `catch (e -> …)` (recover to the success type) or `runThrow` (materialis
 error-as-value result from a native library enters the effect world:
 
 ```eliot
-def parsed(input: String): {Throw[String]} Tree = orRaise(tryParse(input))
+def parsed(input: String) uses Throw[String]: Tree = orRaise(tryParse(input))
 ```
 
-Different error types compose freely in one row, and each `catch` picks its error type by the handler's
+Different error types compose freely in one `uses` clause, and each `catch` picks its error type by the handler's
 parameter type:
 
 ```eliot
-def loadConfig(url: String): {Throw[NetError], Throw[ParseError]} Config = parse(fetch(url))
+def loadConfig(url: String) uses Throw[NetError], Throw[ParseError]: Config = parse(fetch(url))
 
 def config: Config =
    loadConfig("https://cfg") catch ((n: NetError) -> defaultConfig) catch ((p: ParseError) -> defaultConfig)
@@ -106,18 +105,18 @@ recover differently per case.
 ## `State[S]` — a threaded cell
 
 ```eliot
-def swap(next: String): {State[String]} String = {
+def swap(next: String) uses State[String]: String = {
    val old = state
    putState(next)
    old
 }
 
-def tick: {State[Int]} Unit = updateState(n -> n + 1)
+def tick uses State[Int]: Unit = updateState(n -> n + 1)
 ```
 
 `state` reads the current value, `putState(s)` replaces it, and `updateState(f)` is the
 read-modify-write convenience. The state lives in a cell that the discharger creates for the duration
-of its call and nothing else can reach, so a `{State[S]}` function is still deterministic and runs
+of its call and nothing else can reach, so a `uses State[S]` function is still deterministic and runs
 in a test like any pure function.
 
 Discharge by running from an initial value; note the initial value comes **first**, and the
@@ -133,7 +132,7 @@ def demo: Pair[String, String] = runStateToPair("first", swap("second"))
 ## `Writer[W]` — accumulate an output
 
 ```eliot
-def notes: {Writer[String]} Unit = {
+def notes uses Writer[String]: Unit = {
    tell("first ")
    tell("second")
 }
@@ -153,24 +152,24 @@ pair.
 ```eliot
 data Database(url: String)
 
-def describe: {Dep[Database], Console} Unit = printLine(dependency.url)
+def describe uses Dep[Database], Console: Unit = printLine(dependency.url)
 ```
 
 `dependency` reads the injected value, and it is **type-dispatched**: the use site's expected type
 decides *which* dependency is read, so one function can pull several
-(`{Dep[Database], Dep[Topic]}`) and each `dependency` finds its own. Discharge with
+(`uses Dep[Database], Dep[Topic]`) and each `dependency` finds its own. Discharge with
 `provide(value, computation)` — dependency injection at the discharge site, one nested `provide` per
 dependency type.
 
 ## `Inf` — deliberately forever
 
 ```eliot
-def serve: {Console, Inf} Unit = forever(printLine(readLine orElse "(no input)"))
+def serve uses Console, Inf: Unit = forever(printLine(readLine orElse "(no input)"))
 ```
 
 Eliot programs [terminate by default]({{ '/docs/totality/' | relative_url }}); `Inf` is the opt-out.
-`forever(step)` runs a step endlessly, and the effect propagates like any other — a caller that
-doesn't declare `{Inf}` cannot call `serve`. It is the one effect that is *meant* to reach `main`
+`forever(step)` runs a step endlessly — `step uses *: Unit` is code, so it may use your effects — and
+`Inf` propagates like any other effect: a caller that doesn't declare `uses Inf` cannot call `serve`. It is the one effect that is *meant* to reach `main`
 undischarged: a server loop or a firmware main loop declares it, and the platform runs it forever.
 
 ## Beyond the prelude: `FileSystem`
@@ -183,7 +182,7 @@ module; its `FileSystem` effect follows exactly the same rules as the ones above
 import eliot.file.File
 import eliot.file.Path
 
-def greetingFrom(p: Path): {FileSystem, Throw[IoError]} String = readFile(p)
+def greetingFrom(p: Path) uses FileSystem, Throw[IoError]: String = readFile(p)
 ```
 
 This is the shape every library effect takes — an `effect` declaration plus operations — and it is
@@ -194,7 +193,7 @@ effect Metric {
    def count(name: String): Unit
 }
 
-def handle(request: String): {Metric, Console} Unit = {
+def handle(request: String) uses Metric, Console: Unit = {
    count("requests")
    printLine(request)
 }
@@ -203,4 +202,4 @@ def handle(request: String): {Metric, Console} Unit = {
 A new effect has no default implementation until someone writes one — an anonymous `implement
 Metric { … }` in its module for production, or a named one a test binds with `with`.
 
-Next: how effects leave a row — [Discharging effects]({{ '/docs/discharging-effects/' | relative_url }}).
+Next: how effects leave a signature — [Discharging effects]({{ '/docs/discharging-effects/' | relative_url }}).
