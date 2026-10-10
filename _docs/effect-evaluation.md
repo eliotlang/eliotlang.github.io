@@ -1,18 +1,19 @@
 ---
-title: When effects run
-nav_title: When effects run
-order: 17
+title: "Values and code: when effects run"
+nav_title: Values & code
+order: 20
 part: Effects
-summary: Effects run where they are written; a parameter that takes code instead of a value says so with uses; and a parameter without uses is a value, pure even when it is a function.
+summary: Effects run where they are written; a parameter that takes code instead of a value says so with uses; a parameter without uses is a value, pure even when it is a function; and a closed clause says what code may not do.
 ---
 
-Direct style hides the plumbing, not the semantics. This chapter answers the question that follows
-naturally from the last one: given an expression, **when does each of its effects actually happen** —
-and how do you tell without reading the callee's body?
+Direct style hides the plumbing, not the semantics. This chapter answers the question the last three
+have been circling: given an expression, **when does each of its effects actually happen** — and how
+do you tell without reading the callee's body?
 {: .docs-lead}
 
 There are three rules. They fit on one page, and together they make evaluation order something you
-*read* rather than something you *learn per function*.
+*read off a signature* rather than something you learn per function. The chapter builds them up one
+at a time, then puts them in one table.
 
 ## Rule 1 — effects run where they are written
 
@@ -60,23 +61,24 @@ difference between the two programs above — the call sites are identical.
 The `*` says which effects that code may use: **whatever is in scope where it is written**. The
 `printLine` above is written inside `main`, so it uses `main`'s `Console` — wherever and whenever
 `pick` ends up running it. That is why `pick` itself declares no `uses`: it performs nothing of its
-own, any more than it would for a `flag` you passed it. The effects belong to the code you wrote, and
-you declared them where you wrote it.
+own, any more than it would for a `flag` you passed it. The effects belong to the code you wrote,
+and you declared them where you wrote it.
 
-A code parameter may also list effects after the `*` — `computation uses *, Throw[E]: A`. Those are
-effects the **callee gives** the code, on top of the caller's own: the callee runs it inside a
-handler of its own. That is exactly what a [discharger]({{ '/docs/discharging-effects/' | relative_url }})
-is.
+A code parameter may also list effects after the `*` — `computation uses *, Throw[E]: A`. Those
+are effects the **callee gives** the code, on top of the caller's own: the callee runs it inside a
+handler of its own. That is exactly what a
+[discharger]({{ '/docs/discharging-effects/' | relative_url }}) is, and you have been using the rule
+since the last two chapters.
 
 > **A code parameter accepts a plain value too.** A pure expression is code that happens to use
 > nothing, so `pick("just a string", readLine orElse "", flag)` type-checks. A `uses` parameter says
 > *"may run later"*; it never forces the caller to write an effect.
 {: .note}
 
-## Reading the rule off the standard library
+### Reading the rule off the standard library
 
-Every laziness-requiring function in the standard library declares it, so the signatures tell you
-what runs:
+Every function in the standard library that must not run an argument declares it, so the signatures
+tell you what runs:
 
 ```eliot
 def fold[A](condition: Bool, whenTrue uses *: A, whenFalse uses *: A): A
@@ -89,8 +91,12 @@ def foreach[A](action uses *: A => Unit, list: List[A]): Unit
   `if..else` behave like the conditional you expect, since `if(c, v)` is just `fold(c, v, abort)`.
 - `else`'s `computation` is given `Abort`, which `else` itself does not declare — so `else` handles
   it. Its `fallback` is code too, so it costs nothing when the computation succeeds.
-- `foreach`'s `action` is code that takes an argument: your lambda, run once per element, using your
-  effects. `foreach` declares no `uses`, and a call to it performs exactly what your lambda does:
+- `if` lists `Abort` on its `value` *and* declares `uses Abort` itself. An effect the callee
+  already declares is not given but **shared**: a nested bare `if` in the value aborts through the
+  same `Abort` as the `if` around it, and one `else` outside handles both.
+- `foreach`'s `action` is code that takes an argument: your lambda, run once per element, using
+  your effects. `foreach` declares no `uses`, and a call to it performs exactly what your lambda
+  does:
 
 ```eliot
 import eliot.collection.List
@@ -101,18 +107,18 @@ def main uses Console: Unit = names.foreach(n -> printLine(n))
 ```
 
 A function whose parameters carry no `uses` — `printLine`, `append`, your own `def area(r: Rect)` —
-takes values: it runs each argument exactly once, right there. That is the common case, and it needs
-no annotation.
+takes values: it runs each argument exactly once, right there. That is the common case, and it
+needs no annotation.
 
 ## Rule 3 — a parameter without `uses` is a value
 
 The third rule is what makes the first two trustworthy: **only a `uses` parameter takes code.** Every
-other parameter — `A`, `String`, and a function type like `A => B` too — takes a *value*, and a value
-is pure.
+other parameter — `A`, `String`, and a function type like `A => B` too — takes a *value*, and a
+value is pure.
 
-For a plain type that is rule 1 again: the argument runs before the call. For a function type it means
-the function you pass must be a **pure function value**. A lambda written there may perform and handle
-effects *inside itself*, but it cannot reach the effects around it:
+For a plain type that is rule 1 again: the argument runs before the call. For a function type it
+means the function you pass must be a **pure function value**. A lambda written there may perform
+and handle effects *inside itself*, but it cannot reach the effects around it:
 
 ```eliot
 def use[A, B](a: A, f: A => B): B = f(a)
@@ -121,8 +127,7 @@ def main uses Console: Unit = use("hi", s -> printLine(s))
 ```
 
 ```text
-error: This uses the effect 'Console' inside a function written where a value is expected,
-       and a value may use no effect bound outside it.
+error: This uses the effect 'Console' inside a function written where a value is expected.
 ```
 
 `use`'s signature has no `uses` anywhere, and that is a promise: calling it performs nothing. If a
@@ -135,10 +140,10 @@ The two kinds of parameter are treated differently in the callee too:
   `def compose[A, B, C](f: B => C, g: A => B): A => C = a -> f(g(a))` is ordinary code.
 - **Code is called or passed on, never kept.** A `uses` parameter can be run, or handed to another
   `uses` parameter, and nothing else. Storing one is an error — *"'f' is code its caller wrote: it
-  can be called or passed on, not kept"* — because code that was given its effects by one call must
-  not run after that call has returned.
+  can be called or passed on, not kept"* — because code that was given its effects by one call
+  must not run after that call has returned, when the handler it relied on is gone.
 
-The dot operator shows both kinds side by side:
+### The dot operator shows both kinds
 
 ```eliot
 def .[A, B](a: A, f uses *: A => B): B = f(a)
@@ -147,7 +152,8 @@ def .[A, B](a: A, f uses *: A => B): B = f(a)
 Its *function* slot takes code, so `names.foreach(…)` and `lines.foldLeft(…)` carry your effects
 through the chain. Its *subject* slot is a value, so whatever the subject performs runs **before**
 the dot, exactly as rule 1 says. That is usually what you want — `readLine.foldOption("", s -> s)`
-reads a line, then folds it — but it means a discharger cannot take its computation through the dot:
+reads a line, then folds it — but it is why a discharger cannot take its computation through the
+dot:
 
 ```eliot
 def bad: Pair[String, String] = swap("second").runStateToPair("first")
@@ -158,16 +164,10 @@ error: This value performs the effect 'State' but does not declare it;
        add it to its `uses` clause.
 ```
 
-`swap("second")` ran in `bad` itself, before `runStateToPair` was called, so the `State` it performs
-is `bad`'s. The fix is to put the computation where the discharger can receive it as code:
-
-> **Hand dischargers their computation as an argument.** Write
-> `runStateToPair("first", swap("second"))`, `runThrow(parse(raw))`, `runAbort(lookup(key))`. The
-> **infix** dischargers are unaffected — in `x catch (err -> …)` and `host else "localhost"`, the
-> left operand already *is* the discharger's code parameter.
-{: .warn}
-
-Everything else dot-chains as before: `names.foreach(…)`, `outcome.second`, `option.foldOption(…)`.
+`swap("second")` ran in `bad` itself, before `runStateToPair` was called, so the `State` it
+performs is `bad`'s. This is the reason behind the one rule of the
+[discharging chapter]({{ '/docs/discharging-effects/' | relative_url }}#the-one-rule-hand-the-discharger-its-computation):
+hand a discharger its computation as an argument, where the parameter takes it as code.
 
 ## Closing a parameter
 
@@ -179,36 +179,45 @@ does, it has to handle itself:
 def runPure[E, A](body uses Throw[E]: A): Either[E, A] = runThrow(body)
 ```
 
-`runPure(half(4))` is fine for a `half` that may raise; a `printLine` inside the argument is an error
-at the `printLine`, even when the caller could print. A closed clause is how a signature promises
-that some code performs nothing but what it lists — "this test body does no I/O", say.
+`runPure(half(4))` is fine for a `half` that may raise; a `printLine` inside the argument is an
+error at the `printLine` — *"This uses the effect 'Console' inside an argument whose `uses` clause
+is closed"* — even when the caller could print. A closed clause is how a signature promises that
+some code performs nothing but what it lists: "this test body does no I/O", say.
 
-## Why the rules are worth it
-
-The alternative — which Eliot did try — is to let the compiler decide per call site whether an
-argument runs, inferring it from how generic the callee happens to be. That costs you the ability to
-read evaluation order from a signature at all: the same argument at the same slot could run, or not,
-depending on what a *sibling* argument's type turned out to be.
-
-The three rules replace that with something you can hold in your head:
+## The three rules in one table
 
 | The parameter | What happens to your argument |
 |---|---|
 | no clause (`String`, `A`, `Rect`) | a value: runs here, once, before the call |
 | no clause, a function type (`A => B`) | a pure function value: may use no effect from around it |
 | `uses *` (`x uses *: A`, `f uses *: A => B`) | your code, passed unrun, using your effects; the callee decides when |
-| `uses *, E` | the same, and the callee also gives it `E` |
+| `uses *, E` | the same, and the callee also gives it `E` — a discharger |
 | `uses E`, no `*` | closed: code that may use `E` and nothing from around it |
 
 One word, no inference, no per-function folklore. And it reads in both directions: **a signature
 with no `uses` anywhere is pure** — it performs nothing, and it runs no code you hand it.
 
+## Why the rules are worth it
+
+The alternative — which Eliot did try — is to let the compiler decide per call site whether an
+argument runs, inferring it from how generic the callee happens to be. That costs you the ability
+to read evaluation order from a signature at all: the same argument at the same slot could run, or
+not, depending on what a *sibling* argument's type turned out to be. The three rules replace that
+with something you can hold in your head, and every decision is made from the declarations you can
+see.
+
 ## In practice
 
 Most days none of this comes up: you write direct-style code, arguments run where you wrote them,
-and the standard library's lazy combinators are already declared correctly. The rules matter when
-you **write a combinator of your own** that must not run an argument — give the parameter `uses *` —
-and when you **discharge an effect** — hand the discharger its computation as an argument.
+and the standard library's lazy combinators are already declared correctly. The rules matter in two
+situations — when you **write a combinator of your own** that must not run an argument (give the
+parameter `uses *`), and when you **discharge an effect** (hand the discharger its computation as
+an argument).
 
-Next: the effects that ship with the language —
-[the effect catalogue]({{ '/docs/effect-catalogue/' | relative_url }}).
+> **In one sentence.** A parameter without `uses` is a value, computed before the call and pure; a
+> parameter with `uses` is your code, run by the callee on your effects, plus whatever the callee
+> gives it; and leaving out the `*` closes the code to everything but what the clause lists.
+{: .tip}
+
+Next: the model beneath the `uses` clauses —
+[Implementations and `with`]({{ '/docs/implementations/' | relative_url }}).

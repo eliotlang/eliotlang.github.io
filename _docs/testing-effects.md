@@ -3,13 +3,17 @@ title: Testing effects
 nav_title: Testing effects
 order: 22
 part: Effects
-summary: Running effectful business logic with no I/O — discharging control effects into plain values, and faking Console or your own effects with a named implementation and with.
+summary: Running effectful business logic with no I/O — discharging control effects into plain values, faking Console or your own effects with a named implementation and with, and building a small test framework from the same pieces.
 ---
 
-Code that declares its effects in a `uses` clause never says how they are performed — whoever runs it decides.
-In production that is the platform, at `main`. In a test it is you. That is what makes effects
-testable, and it is why the effect system pays for itself.
+Code that declares its effects in a `uses` clause never says how they are performed — whoever runs
+it decides. In production that is the platform, at `main`. In a test it is you. That is what makes
+effects testable, and it is where the effect system pays for itself.
 {: .docs-lead}
+
+There are two kinds of effect, and two matching ways to test. Control effects are *discharged* into
+plain values; interpretation effects are given a *fake implementation*. Neither touches the code
+under test.
 
 ## Control effects: discharge, then assert on data
 
@@ -19,8 +23,8 @@ needs no fake at all. Discharge the effect and the result is a **plain value**:
 ```eliot
 def access(granted: Bool) uses Abort: String = if(granted) "granted"
 
-def testAllowed: Option[String] = runAbort(access(true))     // Some("granted")
-def testDenied: Option[String] = runAbort(access(false))     // None
+def testAllowed: Option[String] = runAbort(access(true))     // some("granted")
+def testDenied: Option[String] = runAbort(access(false))     // none
 ```
 
 Both are ordinary pure functions — compare them with `==`, print them, feed them to a test runner.
@@ -39,9 +43,9 @@ def testSwap: Pair[String, String] = runStateToPair("first", swap("second"))
 ```
 
 Note what you did *not* do: change `swap` for testability, inject anything, or mock anything. The
-signature `uses State[String]: String` was already the testable form. And because a discharger returns
-an ordinary value, a test like this can be written anywhere — in a pure function, or in the middle of
-an effectful one.
+signature `uses State[String]: String` was already the testable form. And because a discharger
+returns an ordinary value, a test like this can be written anywhere — in a pure function, or in the
+middle of an effectful one.
 
 ## Interpretation effects: bind a fake with `with`
 
@@ -59,7 +63,7 @@ The test declares a **named implementation** — a fake — and binds it with
 ```eliot
 implement recordingConsole: Console {
    def printLine(s: String) uses Writer[String]: Unit = tell(s ++ ";")
-   def readLine: Option[String] = None
+   def readLine: Option[String] = none
 }
 
 def transcript: String = runWriterToLog(greeting("Bob") with recordingConsole)
@@ -67,7 +71,7 @@ def transcript: String = runWriterToLog(greeting("Bob") with recordingConsole)
 ```
 
 The fake records each printed line through the `Writer` effect, and `runWriterToLog` discharges that
-into the plain `String` a test asserts on. Nothing printed, nothing was mocked at runtime, and
+into the plain `String` a test asserts on. Nothing was printed, nothing was mocked at runtime, and
 `greeting` never learned that a test exists.
 
 The fake is **one declaration**. It needs no type of its own, no registration, and no place in the
@@ -115,8 +119,8 @@ def transcriptOf(program uses *, Console with recordingConsole: Unit): String = 
 data TestResult(name: String, failure: Option[String])
 
 def expect(name: String, expected: String, actual: String): TestResult =
-   if(expected == actual, TestResult(name, None))
-   else TestResult(name, Some("expected '" ++ expected ++ "' but was '" ++ actual ++ "'"))
+   if(expected == actual, TestResult(name, none))
+   else TestResult(name, some("expected '" ++ expected ++ "' but was '" ++ actual ++ "'"))
 
 def greetTest: TestResult = expect("greet", "Hello, Bob!;", transcriptOf(greeting("Bob")))
 ```
@@ -126,9 +130,9 @@ A test is now one line, and the code under test is a plain call.
 ## Test cases as values
 
 A framework wants its tests as first-class values — collect them, name them, report them. A test's
-*body* is code, though, and code is run or passed on, never stored. So the framework runs each body
-right where it is written, inside a handler, and keeps **what it came to** — an ordinary value like
-the `TestResult` above:
+*body* is code, though, and [code is run or passed on, never stored]({{ '/docs/effect-evaluation/' | relative_url }}#rule-3--a-parameter-without-uses-is-a-value).
+So the framework runs each body right where it is written, inside a handler, and keeps **what it
+came to** — an ordinary value like the `TestResult` above:
 
 ```eliot
 data AssertionError(message: String)
@@ -150,19 +154,26 @@ def report(result: TestResult): String =
    result.failure.foldOption(name(result) ++ ": PASS", reason -> name(result) ++ ": FAIL " ++ reason)
 ```
 
-Notice that `body`'s clause has no `*`. That makes it **closed**: a test body may assert and nothing
-else — it cannot reach the console, the file system or anything else around it, so a test written
-with `test` provably performs no I/O. A body that tries is rejected at the call that does it. A
-framework that *wants* its tests to use the effects around them opens the clause instead,
-`body uses *, Throw[AssertionError]: Unit`; the `eliot.test` framework's `in` is written exactly that
-way.
+Notice that `body`'s clause has no `*`. That makes it
+[**closed**]({{ '/docs/effect-evaluation/' | relative_url }}#closing-a-parameter): a test body may
+assert and nothing else — it cannot reach the console, the file system or anything else around it,
+so a test written with `test` provably performs no I/O. A body that tries is rejected at the call
+that does it. A framework that *wants* its tests to use the effects around them opens the clause
+instead, `body uses *, Throw[AssertionError]: Unit`; the `eliot.test` framework's `in` is written
+exactly that way, and its `mocked` binds a whole set of doubles on one slot, the way `transcriptOf`
+binds one.
 
 ## Structuring code for tests
 
 The practical consequence is a familiar one, now enforced by signatures: keep decisions in functions
 whose effects a test can discharge or fake, and keep the edges thin. Because every effect a function
-uses is in its `uses` clause, you can see from a signature exactly what a test has to supply — and the
-compiler will tell you if you missed one.
+uses is in its `uses` clause, you can see from a signature exactly what a test has to supply — and
+the compiler will tell you if you missed one.
+
+> **In one sentence.** Discharge a control effect and assert on the value; bind a named
+> implementation with `with` for an interpretation effect and assert on what it recorded; the code
+> under test changes in neither case.
+{: .tip}
 
 Next part: programming in the large, starting with
 [Modules & imports]({{ '/docs/modules/' | relative_url }}).
