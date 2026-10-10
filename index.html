@@ -28,9 +28,9 @@ description: >-
       </a>
     </div>
     <div class="hero__pills" aria-label="A taste of the vocabulary">
-      <span class="pill">{Console}</span>
-      <span class="pill">{Throw[E]}</span>
-      <span class="pill">{State[S]}</span>
+      <span class="pill">uses Console</span>
+      <span class="pill">uses Throw[E]</span>
+      <span class="pill">uses State[S]</span>
       <span class="pill">where …</span>
     </div>
   </div>
@@ -46,7 +46,7 @@ description: >-
 <span class="t-com">// the compiler checks it at every call site.</span>
 <span class="t-kw">def</span> asByte(x: <span class="t-ty">Int</span>): <span class="t-ty">Int</span> <span class="t-kw">where</span> withinByte(range(x)) = x
 
-<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> =
+<span class="t-kw">def</span> main <span class="t-kw">uses</span> <span class="t-ty">Console</span>: <span class="t-ty">Unit</span> =
   printLine(show(asByte(<span class="t-num">100</span>)))
 </code></pre>
     </div>
@@ -83,7 +83,7 @@ description: >-
       Effects in the type system
     </span>
     <h3 class="card__title">Say what a function may do</h3>
-    <p class="card__body">Effects are an unordered set in the signature — <code>{Console, State, Throw[E]}</code>. A function may perform only the effects it declares, and the compiler enforces it.</p>
+    <p class="card__body">Effects are an unordered set in the signature — <code>uses Console, State[S], Throw[E]</code>. A function may perform only the effects it declares, and the compiler enforces it.</p>
   </article>
 
   <article class="card">
@@ -119,12 +119,15 @@ description: >-
         <button class="code__copy" type="button" data-copy>copy</button>
       </div>
 <pre><code><span class="t-com">// A parser that fails with a typed error on bad input.</span>
-<span class="t-kw">def</span> parseOk:  {<span class="t-ty">Throw</span>[<span class="t-ty">String</span>]} <span class="t-ty">String</span> = <span class="t-str">"parsed-value"</span>
-<span class="t-kw">def</span> parseBad: {<span class="t-ty">Throw</span>[<span class="t-ty">String</span>]} <span class="t-ty">String</span> = raise(<span class="t-str">"malformed input"</span>)
+<span class="t-kw">def</span> parse(raw: <span class="t-ty">String</span>) <span class="t-kw">uses</span> <span class="t-ty">Throw</span>[<span class="t-ty">String</span>]: <span class="t-ty">String</span> =
+  fold(raw == <span class="t-str">""</span>, raise(<span class="t-str">"malformed input"</span>), raw)
 
-<span class="t-com">// `catch` discharges {Throw[String]} in one step —</span>
+<span class="t-kw">def</span> parseOk  <span class="t-kw">uses</span> <span class="t-ty">Throw</span>[<span class="t-ty">String</span>]: <span class="t-ty">String</span> = parse(<span class="t-str">"parsed-value"</span>)
+<span class="t-kw">def</span> parseBad <span class="t-kw">uses</span> <span class="t-ty">Throw</span>[<span class="t-ty">String</span>]: <span class="t-ty">String</span> = parse(<span class="t-str">""</span>)
+
+<span class="t-com">// `catch` discharges the Throw[String] in one step —</span>
 <span class="t-com">// no Either, no transformer, no wrapper type in sight.</span>
-<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = {
+<span class="t-kw">def</span> main <span class="t-kw">uses</span> <span class="t-ty">Console</span>: <span class="t-ty">Unit</span> = {
   printLine(parseOk  <span class="t-kw">catch</span> (err -&gt; err))
   printLine(parseBad <span class="t-kw">catch</span> (err -&gt; err))
 }
@@ -132,7 +135,7 @@ description: >-
     </div>
     <div class="showcase__note">
       <span class="badge badge--pass"><span class="badge__dot"></span>statically checked</span>
-      <p><code>raise</code> and <code>catch</code> need no import — the effect vocabulary is ambient. <code>catch</code> recovers a typed failure to a value of the same type, and once discharged the effect leaves the signature: <code>main</code> declares only what is left.</p>
+      <p><code>raise</code> and <code>catch</code> need no import — the effect vocabulary is ambient. <code>catch</code> recovers a typed failure to a value of the same type, and once discharged the effect leaves the signature: <code>main</code>'s <code>uses</code> clause declares only what is left.</p>
     </div>
   </div>
 
@@ -151,7 +154,7 @@ description: >-
   <span class="t-kw">case</span> <span class="t-ty">Just</span>(v) -&gt; v
 }
 
-<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = printLine(describe(<span class="t-ty">Just</span>(<span class="t-str">"hello"</span>)))
+<span class="t-kw">def</span> main <span class="t-kw">uses</span> <span class="t-ty">Console</span>: <span class="t-ty">Unit</span> = printLine(describe(<span class="t-ty">Just</span>(<span class="t-str">"hello"</span>)))
 </code></pre>
     </div>
     <div class="showcase__note">
@@ -170,11 +173,11 @@ description: >-
       </div>
 <pre><code><span class="t-com">// One integer type. A value's range is meta-information</span>
 <span class="t-com">// in the compiler, not a separate Int8 / Int16 / ...</span>
-<span class="t-kw">def</span> count: <span class="t-ty">UnsignedByte</span> = <span class="t-num">7</span>        <span class="t-com">// UnsignedByte is an alias for Int</span>
+<span class="t-kw">def</span> count: <span class="t-ty">Int</span> = <span class="t-num">7</span>
 
 <span class="t-kw">def</span> total: <span class="t-ty">Int</span> = count + count + count   <span class="t-com">// 21</span>
 
-<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = printLine(show(total))
+<span class="t-kw">def</span> main <span class="t-kw">uses</span> <span class="t-ty">Console</span>: <span class="t-ty">Unit</span> = printLine(show(total))
 </code></pre>
     </div>
     <div class="showcase__note">
@@ -191,16 +194,17 @@ description: >-
       <p class="eyebrow">Effects in the type system</p>
       <h2>Effects live in the signature</h2>
       <p>
-        Every function declares the capabilities it uses as an unordered set. The compiler
+        Every function declares the capabilities it uses as an unordered set in a
+        <code>uses</code> clause. The compiler
         reads that set, refuses any effect a function hasn't declared, and discharges each one
         explicitly at the edge of your program — no transformer stacks, no ordering baked in.
       </p>
       <ul class="types__list">
-        <li><span class="pill">{Console}</span> read and print lines</li>
-        <li><span class="pill">{Throw[E]}</span> typed failures — <code>raise</code> / <code>catch</code></li>
-        <li><span class="pill">{State[S]}</span> threaded state, no mutable variables</li>
-        <li><span class="pill">{Dep[T]}</span> injected dependencies — <code>provide</code></li>
-        <li><span class="pill">{Abort}</span> short-circuit — <code>runAbort</code></li>
+        <li><span class="pill">Console</span> read and print lines</li>
+        <li><span class="pill">Throw[E]</span> typed failures — <code>raise</code> / <code>catch</code></li>
+        <li><span class="pill">State[S]</span> threaded state, no mutable variables</li>
+        <li><span class="pill">Dep[T]</span> injected dependencies — <code>provide</code></li>
+        <li><span class="pill">Abort</span> short-circuit — <code>runAbort</code></li>
       </ul>
       <div class="types__more">
         <a class="btn btn--secondary btn--sm" href="{{ '/apidoc/' | relative_url }}">Browse the full API reference →</a>
@@ -216,13 +220,13 @@ description: >-
 <pre><code><span class="t-kw">data</span> <span class="t-ty">Database</span>(url: <span class="t-ty">String</span>)
 
 <span class="t-com">// Three effects at once, in direct style.</span>
-<span class="t-kw">def</span> run: {<span class="t-ty">Dep</span>[<span class="t-ty">Database</span>], <span class="t-ty">Log</span>, <span class="t-ty">Console</span>} <span class="t-ty">Unit</span> = {
+<span class="t-kw">def</span> run <span class="t-kw">uses</span> <span class="t-ty">Dep</span>[<span class="t-ty">Database</span>], <span class="t-ty">Log</span>, <span class="t-ty">Console</span>: <span class="t-ty">Unit</span> = {
   log(dependency.url)
   printLine(readLine orElse <span class="t-str">"(no input)"</span>)
 }
 
 <span class="t-com">// Injected at the discharge site.</span>
-<span class="t-kw">def</span> main: {<span class="t-ty">Console</span>, <span class="t-ty">Log</span>} <span class="t-ty">Unit</span> =
+<span class="t-kw">def</span> main <span class="t-kw">uses</span> <span class="t-ty">Console</span>, <span class="t-ty">Log</span>: <span class="t-ty">Unit</span> =
   provide(<span class="t-ty">Database</span>(<span class="t-str">"jdbc://app-db"</span>), run)
 </code></pre>
       </div>

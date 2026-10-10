@@ -32,7 +32,7 @@ up front — each one gets its own chapter later.
   byte — checked at every call site, at zero runtime cost.
 
 - **Effects live in the signature.** What a function may do — print, fail, read state, use a
-  dependency — is an unordered set written in its type: `{Console, State[String], Throw[E]}`.
+  dependency — is an unordered set written in its signature: `uses Console, State[String], Throw[E]`.
   The compiler enforces that a function performs only the effects it declares, yet you write the
   code in ordinary **direct style**, with no monad transformers or hand-written `flatMap`.
 

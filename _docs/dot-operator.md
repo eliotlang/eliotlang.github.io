@@ -16,16 +16,16 @@ Like every operator, `.` is an ordinary definition:
 
 ```eliot
 infix left below apply
-def .[A, B](a: A, f: A => {} B): B = f(a)
+def .[A, B](a: A, f uses *: A => B): B = f(a)
 ```
 
 So `a.f` is just `f(a)`. It is **positional, not member-based** — there is no notion of "methods on an
 object". `a.f` works for *any* function `f` that can take `a`. That one fact is why field accessors,
 library functions, and your own functions all dot-chain uniformly.
 
-The empty row `{}` on the function slot is what lets a chain carry effects —
-`names.foreach(n -> printLine(n))` is as effectful as its callback. The *subject* `a: A` carries no
-such row, which means a dot chain transports a **value**, never an unrun computation; the
+The `uses *` on the function slot marks it as code the caller writes, which is what lets a chain
+carry effects — `names.foreach(n -> printLine(n))` is as effectful as its callback. The *subject*
+`a: A` has no `uses`, so it takes a **value**: a dot chain transports values, never unrun code; the
 [When effects run]({{ '/docs/effect-evaluation/' | relative_url }}) chapter covers the one case where
 that shows up (hand a discharger its computation as an argument rather than dot-chaining it).
 
@@ -54,7 +54,7 @@ def as[A, B](b: B, box: Box[A]): Box[B] = box.map(_ -> b)
 
 def logic: Box[String] = Box("Hello").filter("Expr").map(_ -> "Earth!").as("World!")
 
-def main: {Console} Unit = printLine(logic.content)
+def main uses Console: Unit = printLine(logic.content)
 ```
 
 Notice `box.content` inside the definitions — field access is the same operator; `content` is just the

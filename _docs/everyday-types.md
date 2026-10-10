@@ -21,7 +21,7 @@ type Option[A]
 
 def none[A]: Option[A]
 def some[A](value: A): Option[A]
-def foldOption[A, B](ifNone: {} B, ifSome: A => {} B, o: Option[A]): B
+def foldOption[A, B](ifNone uses *: B, ifSome uses *: A => B, o: Option[A]): B
 ```
 
 `Option` is an **abstract type**: the standard library says that it exists and what you can do with
@@ -53,15 +53,15 @@ case:
 ```eliot
 def greeting(name: Option[String]): String = name.foldOption("hello, stranger", n -> n)
 
-def main: {Console} Unit = {
+def main uses Console: Unit = {
   printLine(greeting(some("Ada")))
   printLine(greeting(none))
 }
 ```
 
 This prints `Ada`, then `hello, stranger`. Like most of the library, `foldOption` takes its subject
-**last**, which is what lets it read as `name.foldOption(…)`. Both arms are suspended, so only the one
-that applies is ever run.
+**last**, which is what lets it read as `name.foldOption(…)`. Both arms are code (`uses *`), so only
+the one that applies is ever run.
 
 When all you want is the value or a fallback, `orElse` says it directly:
 
@@ -80,7 +80,7 @@ parts back with `first` and `second`:
 ```eliot
 def dimensions: Pair[Int, Int] = pair(640, 480)
 
-def main: {Console} Unit = {
+def main uses Console: Unit = {
   printLine(show(dimensions.first))
   printLine(show(dimensions.second))
 }
@@ -125,7 +125,7 @@ literals. When you need to assemble text, build the pieces and print them, or `s
 
 `Unit` is the "no interesting value" type — one type, one value, `unit`. It's what an effectful action
 returns when it's performed for its effect rather than its result, which is why `main` is
-`{Console} Unit` and why a `printLine` yields `Unit`.
+`uses Console: Unit` and why a `printLine` yields `Unit`.
 
 ## The pattern to notice
 

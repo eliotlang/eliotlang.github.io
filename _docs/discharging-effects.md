@@ -3,11 +3,11 @@ title: Discharging effects
 nav_title: Discharging effects
 order: 19
 part: Effects
-summary: Turning effectful code into plain values — catch, else, provide, the run… family, how nesting decides the outcome, and why a discharged effect never appears in your row.
+summary: Turning effectful code into plain values — catch, else, provide, the run… family, how nesting decides the outcome, and why a discharged effect never appears in your uses clause.
 ---
 
 An effect declared in a signature has to be *discharged* somewhere — handled, given meaning, and
-removed from the type. Discharge combinators are how effectful code becomes a plain value, and they
+removed from the signature. Discharge combinators are how effectful code becomes a plain value, and they
 read like plain English.
 {: .docs-lead}
 
@@ -30,15 +30,22 @@ runStateToPair("before", rename("after")) // Pair[result, finalState], from an i
 provide(Database("jdbc://app-db"), run)   // Dep: inject the dependency, keep the result
 ```
 
-Both flavours do the same thing to the *type*: the discharged effect disappears from the row. A
-`{Console, Throw[String]} Config` computation under a `catch` is just `{Console} Config` — the
-failure has been handled, so it is no longer something the code "may do".
+Both flavours do the same thing to the *signature*: the discharged effect disappears from it. Code
+that uses `Console` and `Throw[String]`, put under a `catch`, only uses `Console` — the failure has
+been handled, so it is no longer something the code "may do".
 
-How that works is unremarkable on purpose. A discharger is an ordinary function whose parameter
-declares the effect it handles — `catch`'s first parameter is `{Throw[E]} A`. Because the parameter
-declares a row, the argument arrives **unrun**; the discharger installs a handler (for `Throw`, the
-place a `raise` exits to), runs the computation inside it, and returns a plain value. The effect's
-operations inside the argument are bound to that handler, so they never reach your row.
+How that works is unremarkable on purpose. A discharger is an ordinary function with a
+[code parameter]({{ '/docs/effect-evaluation/' | relative_url }}) that is *given* the effect it
+handles:
+
+```eliot
+def catch[E, A](computation uses *, Throw[E]: A, onError uses *: E => A): A
+```
+
+`computation uses *, Throw[E]: A` reads *"your code, using your effects, plus a `Throw[E]` that I
+give it"*. The argument arrives **unrun**; the discharger installs a handler (for `Throw`, the
+place a `raise` exits to), runs the computation inside it, and returns a plain value. The `raise`
+calls inside the argument use that handler, so they never reach your `uses` clause.
 
 ## Hand the discharger the computation
 
@@ -50,11 +57,11 @@ def outcome: Pair[String, String] = runStateToPair("before", rename("after"))   
 def outcome: Pair[String, String] = rename("after").runStateToPair("before")   // no
 ```
 
-The second spelling puts `rename("after")` in the dot operator's *subject* slot, which declares no
-row — so, by [rule 1]({{ '/docs/effect-evaluation/' | relative_url }}), it runs right there, before
+The second spelling puts `rename("after")` in the dot operator's *subject* slot, which takes a
+value — so, by [rule 1]({{ '/docs/effect-evaluation/' | relative_url }}), it runs right there, before
 `runStateToPair` is ever called. Its `State` effect is then performed by `outcome` itself, which
-declares no row, and the compiler says so at the call. The **infix** dischargers `catch` and `else`
-read naturally either way, because their left operand already *is* the parameter.
+declares no `uses`, and the compiler says so at the call. The **infix** dischargers `catch` and `else`
+read naturally either way, because their left operand already *is* the code parameter.
 
 Nesting is how you combine them, innermost first:
 
@@ -73,15 +80,15 @@ runStateToPair(s0, logic else fallback)   // else wraps the call, runStateToPair
 
 The used-must-be-declared rule counts effects you *perform* — and an effect your body fully
 discharges is not performed, so you don't declare it. The everyday case is `if..else`: a bare
-`if(condition, value)` is an `{Abort}` expression, and the `else` discharges it, so this function is
-honestly just `{Console}`:
+`if(condition, value)` uses `Abort`, and the `else` discharges it, so this function honestly uses
+just `Console`:
 
 ```eliot
-def demo(flag: Bool): {Console} Unit = printLine(if(flag, "ON") else "OFF")
+def demo(flag: Bool) uses Console: Unit = printLine(if(flag, "ON") else "OFF")
 ```
 
 The same applies to any effect: raise inside, `catch` inside, and `Throw` never appears in your
-signature. Discharge is how effects *end*; the row only ever lists what escapes.
+signature. Discharge is how effects *end*; the `uses` clause only ever lists what escapes.
 
 ## The pure boundary just works
 
@@ -89,35 +96,37 @@ When everything is discharged the result is a plain value, usable in a completel
 with no ceremony at the boundary:
 
 ```eliot
-def setting(key: String): {Abort} String = abort
+def setting(key: String) uses Abort: String = abort
 
 def sign(f: Bool): String = if(f, "+") else "-"
 def port: String = setting("port") else "8080"
 def tryPort: Option[String] = runAbort(setting("port"))
 ```
 
-All three are pure functions — no row, and nothing left over to unwrap. A discharger returns an
+All three are pure functions — no `uses`, and nothing left over to unwrap. A discharger returns an
 ordinary value (`String`, `Option[String]`), so there is no wrapper type and no "run" step at the
 boundary.
 
 ## Handlers may themselves be effectful
 
-A recovery handler runs in the same context as the computation it recovers, so it may perform
-effects of its own — logging a failure before substituting a default is ordinary code:
+`catch`'s handler is a code parameter too (`onError uses *: E => A`), so it may use the caller's
+effects — logging a failure before substituting a default is ordinary code:
 
 ```eliot
 data NetError(reason: String)
 
-def report(e: NetError): {Console} String = {
+def fetch(url: String) uses Throw[NetError]: String = raise(NetError("unreachable: " ++ url))
+
+def report(e: NetError) uses Console: String = {
    printLine(reason(e))
    "<fallback>"
 }
 
-def load(url: String): {Console} String = fetch(url) catch report
+def load(url: String) uses Console: String = fetch(url) catch report
 ```
 
-`Throw[NetError]` is discharged; `Console` — performed by the handler — stays in the row, which is
-exactly right.
+`Throw[NetError]` is discharged; `Console` — used by the handler — stays in `load`'s clause, which
+is exactly right.
 
 ## Repeated effects: one discharger each
 
@@ -125,7 +134,7 @@ Two dependencies take two nested `provide`s; two error types take two `catch`es,
 error type by the handler's parameter type:
 
 ```eliot
-def main: {Console} Unit =
+def main uses Console: Unit =
    provide(Topic("events"), provide(Database("jdbc://app-db"), describe))
 
 def config: Config =
@@ -136,27 +145,44 @@ Each discharger handles exactly one effect; the rest keep floating.
 
 ## Writing your own handler
 
-Discharging is not reserved for the standard library. A function whose parameter declares an effect
-receives that argument unrun, and may handle it — which makes it a discharger, in ordinary Eliot:
+Discharging is not reserved for the standard library. A function whose code parameter is given an
+effect receives that argument unrun, and may handle it — which makes it a discharger, in ordinary
+Eliot:
 
 ```eliot
-def orZero(computation: {Throw[String]} Int): Int = computation catch ((err: String) -> 0)
+def orZero(computation uses *, Throw[String]: Int): Int = computation catch ((err: String) -> 0)
 ```
 
-Read the signature as English: *"give me a computation that may raise a `String`, and I return an
-`Int`."* Callers hand `orZero` a raising computation and get a plain value back; `Throw[String]`
-never reaches their row.
+Read the signature as English: *"give me code that may raise a `String`, and I return an `Int`."*
+Callers hand `orZero` a raising computation and get a plain value back; `Throw[String]` never reaches
+their `uses` clause.
 
 The handler names its error type, `(err: String)`, for a reason. When `catch` is handed a
 *parameter* rather than a call, there is no callee declaration to say which `Throw` it is
 discharging, and the compiler refuses to guess — a `catch` for the wrong error type would install a
 handler the `raise` never reaches. It asks you to write the type out, either in the handler as here
-or as `catch[String, Int](computation, _ -> 0)`. Whatever *else* the argument performs — printing, say — is not supplied by
-`orZero`'s parameter, so it stays the caller's, bound by the caller's own declaration.
+or as `catch[String, Int](computation, _ -> 0)`. Whatever *else* the argument performs — printing,
+say — is what the `*` covers: it stays the caller's, using the caller's own `Console`.
 
-There is no type parameter for "the rest of the effects", no wrapper type in the result and no
-special rule about what the result may be: an effect your parameter declares and your body handles
-simply ends there.
+A function **with a body gives its code only what it has.** `orZero` can promise `Throw[String]`
+because it passes `computation` straight on to `catch`, which installs the handler. A function that
+promised an effect and had nothing to give it from would be rejected:
 
-Next: the model beneath the rows —
+```eliot
+def launder(body uses *, Console: Unit): Unit = body
+```
+
+```text
+error: 'body' is given the effect 'Console' here, which this definition has no implementation
+       of to give.
+```
+
+The default implementation of an effect like `Console` is handed out at `main` and nowhere else, so
+a function cannot quietly print on behalf of code that never declared it.
+
+There is no type parameter for "the rest of the effects" — that is the `*` — no wrapper type in the
+result and no special rule about what the result may be: an effect your parameter is given and your
+body handles simply ends there.
+
+Next: the model beneath the `uses` clauses —
 [Implementations and `with`]({{ '/docs/implementations/' | relative_url }}).

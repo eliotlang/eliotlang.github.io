@@ -29,9 +29,15 @@ newcomers. Keep this open while you write your first programs.
 - `f(x)` (call) versus `f (x)` (separate operand) — adjacency decides.
 - Juxtaposition binds tighter than `.` and every infix operator: `printLine msg.content` is wrong;
   parenthesize.
-- Effect rows wrap the plain type: `{Console} Unit`, never `{Console} IO[Unit]`.
+- Effects go in a `uses` clause beside a plain result type: `uses Console: Unit`, never `IO[Unit]`.
 - A lowercase name in a `case` is a binder, not a constructor; there are no literal patterns.
-- Arguments run where they are written; only a parameter that declares an effect row is suspended.
+- Arguments run where they are written; only a parameter with a `uses` clause (`x uses *: A`) takes
+  code and receives it unrun.
+- A function-typed parameter without `uses` takes a pure function: a lambda passed there cannot use
+  your effects. Write `f uses *: A => B` when it should.
+- Code parameters are called or passed on, never kept; a `data` field holds a value, so store data
+  describing work rather than a computation.
+- `uses` without `*` is closed: the argument may use only what the clause lists.
 - Hand dischargers their computation as an argument (`runThrow(parse(raw))`), don't dot-chain them.
 - Effects are ambient — never import `eliot.effect`, and never re-import the `eliot.lang` prelude.
 - `with` belongs in tests: production code names no implementation and lets its caller decide.
