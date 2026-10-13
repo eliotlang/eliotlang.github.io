@@ -8,7 +8,8 @@ summary: What an effect is, how a uses clause declares the effects a function ma
 
 Eliot's effects let a signature say what a function *may do* — print, fail, read state — while the
 body is written in ordinary direct style. This is the part of the language that feels most different,
-and most freeing. The whole idea fits in one sentence: **an effect is a parameter you don't spell**.
+and most freeing. The whole idea fits in one sentence: **a function declares what it may do; whoever
+runs it decides how, and the compiler carries that choice down every call.**
 {: .docs-lead}
 
 This part of the guide builds the picture in layers. This chapter is the first layer: what an effect is,
@@ -55,8 +56,9 @@ effect Console {
 
 Something else says *how* a line is printed — an **implementation** of the effect. The platform you
 compile for ships one for `Console`; a test may write its own. The function declaring `uses Console`
-never says which: it only says it needs one. That is the sense in which an effect is a parameter you
-don't spell, and it is also why user code can declare new effects with no compiler support.
+never says which: it only says it needs one, and whoever runs it decides. That choice is settled when
+the program is compiled — it is not an argument handed over at run time. And because an implementation
+is ordinary code, user code can declare new effects with no compiler support.
 
 ## The vocabulary is already in scope
 
@@ -112,9 +114,9 @@ def name uses Console: String = readLine orElse "stranger"
 def greet uses Console: Unit = printLine(name)
 ```
 
-`greet` uses `Console` because `name` does, so it declares it too. You pass nothing by hand: an
-effect is a parameter you never spell out. `greet`'s caller hands it a `Console`, and `greet` hands
-that same one on to `name` — and on to its own `printLine`.
+`greet` uses `Console` because `name` does, so it declares it too. You pass nothing by hand: whichever
+`Console` implementation `greet`'s caller is using, the compiler wires the same one into `name` — and
+into `greet`'s own `printLine`. Declaring the effect is all it takes to inherit the caller's choice.
 
 ## The rule: used must be declared
 
