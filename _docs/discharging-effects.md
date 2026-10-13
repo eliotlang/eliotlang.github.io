@@ -161,7 +161,7 @@ and no special rule about what the result may be.
 
 ## Writing your own handler
 
-Discharging is not reserved for the standard library. A function whose parameter is given an effect
+Discharging is not reserved for the standard library. A function whose parameter lists an effect
 receives that argument unrun and may handle it — which makes it a discharger, in ordinary Eliot:
 
 ```eliot
@@ -172,32 +172,100 @@ Read the signature as English: *"give me code that may raise a `String`, and I r
 Callers hand `orZero` a raising computation and get a plain value back; `Throw[String]` never
 reaches their `uses` clause.
 
-Two details are worth knowing when you write one:
+### Handle it or declare it
 
-- **The handler names its error type**, `(err: String)`, for a reason. When `catch` is handed a
-  *parameter* rather than a call, there is no callee declaration to say which `Throw` is being
-  discharged, and the compiler refuses to guess — a `catch` for the wrong error type would install a
-  handler the `raise` never reaches. It asks you to write the type out, in the handler as here or
-  as `catch[String, Int](computation, _ -> 0)`. Whatever *else* the argument performs — printing,
-  say — is what the `*` covers: it stays the caller's, using the caller's own `Console`.
-- **A function with a body gives its code only what it has.** `orZero` can promise `Throw[String]`
-  because it passes `computation` straight on to `catch`, which installs the handler. A function
-  that promised an effect and had nothing to give it from is rejected:
+Listing an effect on a code parameter is a promise to the caller — *"you need not declare this; I
+take care of it"* — and the compiler holds the function to it:
+
+> **An effect a code parameter lists is the function's to handle or to declare.**
+{: .note}
+
+The function either **handles** the effect where it runs the code — passes the code on to a
+discharger, as `orZero` passes it to `catch`, or names an implementation for it with a
+[`with` on the parameter]({{ '/docs/implementations/' | relative_url }}#with-on-a-parameter) — or
+it **declares** the effect in its own `uses` clause, which passes it on to *its* caller. The
+standard library has both kinds:
+
+```eliot
+def else[A](computation uses *, Abort: A, fallback uses *: A): A               // handles Abort
+def catch[E, A](computation uses *, Throw[E]: A, onError uses *: E => A): A    // handles Throw[E]
+def if[T](condition: Bool, value uses *, Abort: T) uses Abort: T              // declares Abort
+```
+
+That is the difference between a bare `if`, whose `Abort` reaches your function, and an `if..else`,
+whose `else` answers it. Doing neither is an error at the place the code runs:
 
 ```eliot
 def launder(body uses *, Console: Unit): Unit = body
 ```
 
 ```text
-error: 'body' is given the effect 'Console' here, which this definition has no implementation
-       of to give.
+error: 'body' may perform the effect 'Console' here, which this definition neither handles nor
+       declares.
+  |  Handle it by passing 'body' to a parameter that discharges it (such as `catch` or `runThrow`)
+  |  or by naming an implementation on its slot with `with`, or add 'Console' to this definition's
+  |  `uses` clause to pass it on to its caller.
 ```
 
-The default implementation of `Console` is handed out at `main` and nowhere else, so a function
-cannot quietly print on behalf of code that never declared it. A function with a body can give its
-code only what it hands on to a discharger — or what a `with` on the parameter names, which the
-[Implementations chapter]({{ '/docs/implementations/' | relative_url }}#with-on-a-parameter) shows.
-Everything else the code brings along from where it was written.
+The platform's default `Console` is handed out at `main` and nowhere else, so a function cannot
+quietly print on behalf of code that never declared it: it either chooses an implementation
+explicitly, or makes its own caller declare the effect.
+
+Handling and declaring combine. A function may declare an effect *and* handle it around its code —
+the handling catches the code's failure, and the declaration covers what the function raises itself.
+This is how a failure message gets rewritten:
+
+```eliot
+def describedAs(label: String, body uses *, Throw[String]: String) uses Throw[String]: String =
+   body catch ((reason: String) -> raise(label ++ ": " ++ reason))
+
+def parseBad uses Throw[String]: String = raise("malformed input")
+
+def outcome: Either[String, String] = runThrow(describedAs("load", parseBad))
+// left("load: malformed input")
+```
+
+### What a parameter does not list is out of reach
+
+An effect the code uses only through the `*` belongs to the caller: it was bound where the code was
+written, so the function can neither catch it nor needs to declare it. A helper's private `catch`
+therefore cannot swallow a failure that was never handed to it:
+
+```eliot
+def guarded(body uses *: Unit) uses Console: Unit =
+   catch[String, Unit](body, e -> printLine("guarded caught " ++ e))
+
+def main uses Console: Unit =
+   printLine(runThrow[String, Unit](guarded(raise("boom")))
+      .foldEither(e -> "main caught " ++ e, _ -> "no failure"))
+```
+
+```text
+main caught boom
+```
+
+`guarded`'s parameter lists nothing, so its `catch` intercepts nothing: the `raise` was written in
+`main`, inside `main`'s `runThrow`, and that is where it lands. Which effects a function can touch is
+decided by its signature, never by what happens to be on the call stack.
+
+### Spelling the error type
+
+**The handler in `orZero` names its error type**, `(err: String)`, for a reason. When `catch` is
+handed a *parameter* rather than a call, there is no callee declaration to say which `Throw` is being
+discharged, and the compiler refuses to guess — a `catch` for the wrong error type would install a
+handler the `raise` never reaches:
+
+```text
+error: Cannot tell which 'Throw' this call supplies: nothing determines its type argument 'E', so
+       it would run on a different one than the computation it discharges. Write it out at the
+       call, as `catch[…]`.
+```
+
+Write the type out, in the handler as `orZero` does or as `catch[String, Int](computation, _ -> 0)`.
+The same applies when one parameter lists the *same* effect twice
+(`uses *, Throw[IoError], Throw[AssertionError]`), where only the call can say which one it answers.
+Whatever *else* the argument performs — printing, say — is what the `*` covers: it stays the
+caller's, using the caller's own `Console`.
 
 > **In one sentence.** A discharger is a function whose parameter is given an effect; it runs your
 > computation inside a handler for that effect and returns a plain value, so the effect never reaches

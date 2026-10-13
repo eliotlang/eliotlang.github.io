@@ -64,11 +64,12 @@ The `*` says which effects that code may use: **whatever is in scope where it is
 own, any more than it would for a `flag` you passed it. The effects belong to the code you wrote,
 and you declared them where you wrote it.
 
-A code parameter may also list effects after the `*` — `computation uses *, Throw[E]: A`. Those
-are effects the **callee gives** the code, on top of the caller's own: the callee runs it inside a
-handler of its own. That is exactly what a
-[discharger]({{ '/docs/discharging-effects/' | relative_url }}) is, and you have been using the rule
-since the last two chapters.
+A code parameter may also list effects after the `*` — `computation uses *, Throw[E]: A`. A listed
+effect is one the **callee takes responsibility for**: the code may use it without the caller
+declaring it, and the callee either *handles* it — runs the code inside a handler of its own, which
+is exactly what a [discharger]({{ '/docs/discharging-effects/' | relative_url }}) is — or *declares*
+it in its own `uses` clause and passes it on to its caller, as `if` does below. You have been using
+the rule since the last two chapters.
 
 > **A code parameter accepts a plain value too.** A pure expression is code that happens to use
 > nothing, so `pick("just a string", readLine orElse "", flag)` type-checks. A `uses` parameter says
@@ -127,7 +128,8 @@ def main uses Console: Unit = use("hi", s -> printLine(s))
 ```
 
 ```text
-error: This uses the effect 'Console' inside a function written where a value is expected.
+error: This uses the effect 'Console' inside a function written where a value is expected, and a
+       value may use no effect bound outside it.
 ```
 
 `use`'s signature has no `uses` anywhere, and that is a promise: calling it performs nothing. If a
@@ -191,7 +193,7 @@ some code performs nothing but what it lists: "this test body does no I/O", say.
 | no clause (`String`, `A`, `Rect`) | a value: runs here, once, before the call |
 | no clause, a function type (`A => B`) | a pure function value: may use no effect from around it |
 | `uses *` (`x uses *: A`, `f uses *: A => B`) | your code, passed unrun, using your effects; the callee decides when |
-| `uses *, E` | the same, and the callee also gives it `E` — a discharger |
+| `uses *, E` | the same, and `E` is the callee's to handle (a discharger) or to declare (like `if`) |
 | `uses E`, no `*` | closed: code that may use `E` and nothing from around it |
 
 One word, no inference, no per-function folklore. And it reads in both directions: **a signature
@@ -215,8 +217,9 @@ parameter `uses *`), and when you **discharge an effect** (hand the discharger i
 an argument).
 
 > **In one sentence.** A parameter without `uses` is a value, computed before the call and pure; a
-> parameter with `uses` is your code, run by the callee on your effects, plus whatever the callee
-> gives it; and leaving out the `*` closes the code to everything but what the clause lists.
+> parameter with `uses` is your code, run by the callee on your effects, plus whatever effects it
+> lists, which the callee handles or declares; and leaving out the `*` closes the code to everything
+> but what the clause lists.
 {: .tip}
 
 Next: the model beneath the `uses` clauses —

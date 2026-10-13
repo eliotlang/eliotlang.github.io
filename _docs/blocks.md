@@ -59,11 +59,11 @@ def greet(name: String): String = name
 
 ## Sequencing falls out for free
 
-Here is the quiet magic of blocks. A block **lowers to a tower of immediately-applied lambdas**, so
-when the steps are effectful, their sequencing — the thing other languages spell with `flatMap`,
-`do`, or `await` — happens automatically. You write the steps in order, as if they were ordinary
-values, and the compiler threads them. That's why the effectful example above reads like plain
-imperative code even though nothing mutates. We come back to this in depth once effects arrive.
+Here is the quiet magic of blocks. Eliot is strict, and a block evaluates its lines top to bottom,
+so when the steps are effectful, their sequencing — the thing other languages spell with `flatMap`,
+`do`, or `await` — is simply the order you wrote them in. An effectful call is an ordinary call that
+runs where it stands; nothing is wrapped, and the compiler inserts nothing between the steps. That's
+why the effectful example above reads like plain imperative code even though nothing mutates. We come back to this in depth once effects arrive.
 
 ## The rules that will trip you up
 

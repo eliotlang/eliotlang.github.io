@@ -158,8 +158,9 @@ def port(config: String): String = parsePort(config) catch (err -> "8080")
 `parsePort` may fail; `port` cannot, and its signature says so with no `uses` at all. That is
 **discharge**, and it is how effects end. You have met it already without the name: a bare `if`
 performs `Abort`, and the `else` discharges it, which is why an `if..else` leaves nothing in your
-signature ([Branching]({{ '/docs/branching/' | relative_url }})). Every effect has at least one
-discharger, and they get their own [chapter]({{ '/docs/discharging-effects/' | relative_url }}).
+signature ([Branching]({{ '/docs/branching/' | relative_url }})). Every control effect — failure,
+state, dependencies — has at least one discharger, and they get their own
+[chapter]({{ '/docs/discharging-effects/' | relative_url }}).
 
 ## `main` — where effects meet the platform
 
@@ -175,6 +176,23 @@ microcontroller tomorrow — ships a **default implementation** of each effect i
 program's entry point binds those defaults for every effect `main` declares. Below `main`, each
 function receives the implementation its caller had, so the one decision made at the top reaches
 every `printLine` in the program.
+
+Only two kinds of effect may reach `main` this way: the ones the platform *performs* — `Console`,
+`Log`, `FileSystem`, `Process`, `Environment` — and `Inf`, which marks a program that is meant to
+run forever. A failure, a piece of state or a dependency has no meaning without a discharger, so one
+that reaches `main` undischarged is a **compile error**, not a crash at run time:
+
+```eliot
+def main uses Console, Abort: Unit = printLine(if(false, "x"))
+```
+
+```text
+error: The effect 'Abort' is performed here with nothing to discharge it: its implementation
+       needs a frame, and only a discharger installs one.
+```
+
+(A *frame* is what a discharger installs around the code it runs — the place an `abort` exits to,
+or the cell a piece of state lives in.)
 
 This is the payoff that motivates the whole design:
 

@@ -107,7 +107,7 @@ def message(result: Either[String, Int]): String =
 ```
 
 You rarely build an `Either` by hand. It's what the `Throw[E]` effect discharges into: running a
-`{Throw[E]}` computation with `runThrow` yields an `Either[E, A]` holding either the error it raised
+computation that `uses Throw[E]` with `runThrow` yields an `Either[E, A]` holding either the error it raised
 or the result it returned, and `orRaise` turns one back into the effect. We'll get there in
 [Discharging effects]({{ '/docs/discharging-effects/' | relative_url }}).
 

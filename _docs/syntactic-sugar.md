@@ -26,8 +26,8 @@ once.
 - **Implementations**: a syntax-directed pass then writes the implementation into every effectful
   call — from the nearest `with`, from the enclosing function's own `uses` clause, or from the code
   parameter that gives it — so an operation like `printLine` becomes a direct call to a known method.
-- **Blocks**: a `{ … }` block lowers to a tower of immediately-applied lambdas, which is where
-  automatic effect sequencing comes from.
+- **Blocks**: a `{ … }` block lowers to a tower of immediately-applied lambdas; since evaluation is
+  strict, its lines run in the order written.
 - **Direct style**: there is no monadic rewrite. Evaluation is strict and an effect operation is an
   ordinary call, so effectful code runs in the order it is written; the only thing the compiler adds
   is the thunk for a parameter with a `uses` clause, which is why evaluation order is readable from

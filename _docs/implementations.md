@@ -88,6 +88,23 @@ through step 2 above, everything `greeting` calls — uses `recordingConsole`. I
 loosest of all operators, and reads left to right, so `program with fakeConsole with fakeFileSystem`
 replaces two effects and leaves every other one at its default.
 
+Precisely, a `with` binds its effect **for everything that escapes its subject**: what the calls in
+it declare, and what its own code performs. An effect that is discharged further down never escapes,
+so no `with` reaches it. And a `with` that binds nothing is an error, never a silent no-op — the
+likeliest cause is a `with` written in the wrong place:
+
+```eliot
+def answer: Int = 42
+
+def wasted: Int = answer with recordingConsole
+```
+
+```text
+error: This `with` binds nothing: no use of 'Console' in its subject escapes into it.
+  |  A `with` binds what its subject performs and does not discharge itself; remove it, or move it
+  |  to where 'Console' is performed.
+```
+
 A few properties are worth knowing:
 
 - **An implementation may perform effects of its own.** `recordingConsole`'s `printLine` declares
@@ -117,6 +134,35 @@ def greetTest: String = transcriptOf(greeting("Bob"))
 
 This is the one way a function can bind calls it cannot see — they were written by its caller — and
 it is how a small test helper hides the fake entirely.
+
+The same binding can also be written where the code runs, which often reads more naturally:
+
+```eliot
+def transcriptOf(program uses *, Console: Unit): String = runWriterToLog(program with recordingConsole)
+```
+
+Both spellings mean *"this argument, run with `recordingConsole` for its `Console`"*. The compiler
+moves the second onto the parameter, because the caller's code is compiled against the parameter's
+declaration — so every run of `program` must use the same implementation.
+
+Either way, the effect has to be **listed** on the parameter. An effect the code uses only through
+the `*` was bound where the code was written, and no `with` in the callee can reach it:
+
+```eliot
+def transcriptOf(program uses *: Unit): String = runWriterToLog(program with recordingConsole)
+```
+
+```text
+error: This `with` binds nothing: 'program' is code its caller wrote, and its use of 'Console' was
+       bound where it was written.
+  |  To handle 'Console' for 'program', list it in its `uses` clause (`program uses *, Console: …`);
+  |  a `with` around its runs then binds it.
+```
+
+A `with` on a listed effect counts as
+[handling it]({{ '/docs/discharging-effects/' | relative_url }}#handle-it-or-declare-it). The
+implementation's own effects then become the function's to handle in turn — `recordingConsole`
+performs `Writer[String]`, which is exactly what `transcriptOf`'s `runWriterToLog` discharges.
 
 ### `with` is written almost nowhere
 
@@ -181,8 +227,8 @@ def announce(name: String) uses Log: Talking[Unit] = {
 ```
 
 `greet` declares exactly what `uses Console` would, and the alias composes with a `uses` clause:
-`announce` declares both `Log` and `Console`. The alias is an ordinary name — it can be imported,
-made private, and shadowed. It works in **return position only**; a parameter spells its effects
+`announce` declares both `Log` and `Console`. The alias is an ordinary name — it can be imported and
+shadowed like any other declaration. It works in **return position only**; a parameter spells its effects
 out in its own `uses` clause.
 
 ## What deliberately has no spelling
@@ -202,8 +248,8 @@ out in its own `uses` clause.
 ## The spelling the tooling speaks
 
 Because an effect is a plain ability and an implementation is a name, there is no hidden machinery
-for a type to expose. Hover an effectful value in the IDE and you see the signature you wrote; a
-diagnostic about effects speaks in `uses` clauses:
+for a type to expose. Every diagnostic about effects speaks the words you write — the effect, the
+`uses` clause, the code parameter, the `with` — and names the fix:
 
 ```text
 error: This value performs the effect 'Console' but does not declare it;
