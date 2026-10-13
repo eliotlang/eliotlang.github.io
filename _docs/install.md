@@ -38,7 +38,7 @@ launcher v0.6
 
 package hello {
   at .
-  dep github.com/eliotlang/eliot//jvm v0.7
+  dep github.com/eliotlang/eliot//jvm v0.10
   compiler run -m HelloWorld
 }
 ```
@@ -48,7 +48,7 @@ Line by line:
 - **`launcher v0.6`** is the version of the build tool `eliotw` downloads.
 - **`package hello { … }`** declares a package. Its name is what you pass to `./eliotw`.
 - **`at .`** puts the package in the project directory, so its sources go in `src/`.
-- **`dep …//jvm v0.7`** depends on Eliot's JVM platform at version `v0.7`. That brings in the
+- **`dep …//jvm v0.10`** depends on Eliot's JVM platform at version `v0.10`. That brings in the
   standard library and the compiler too.
 - **`compiler run -m HelloWorld`** is what a build does: compile the module `HelloWorld`, then run it.
 
