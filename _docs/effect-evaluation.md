@@ -45,7 +45,7 @@ fallback that should only apply on failure, a step a loop runs many times. Such 
 **code** rather than a value, and it says so with a `uses` clause of its own:
 
 ```eliot
-def pick[A](left uses *: A, right uses *: A, flag: Bool): A = fold(flag, left, right)
+def pick[A](left uses *: A, right uses *: A, flag: Bool) uses *: A = fold(flag, left, right)
 
 def main uses Console: Unit = pick(printLine("left ran"), printLine("right ran"), true)
 ```
@@ -60,9 +60,14 @@ difference between the two programs above — the call sites are identical.
 
 The `*` says which effects that code may use: **whatever is in scope where it is written**. The
 `printLine` above is written inside `main`, so it uses `main`'s `Console` — wherever and whenever
-`pick` ends up running it. That is why `pick` itself declares no `uses`: it performs nothing of its
-own, any more than it would for a `flag` you passed it. The effects belong to the code you wrote,
-and you declared them where you wrote it.
+`pick` ends up running it. The effects belong to the code you wrote, and you declared them where
+you wrote it — `pick` performs nothing of its own, any more than it would for a `flag` you passed it.
+
+That is what the `uses *` on `pick` *itself* says: **a call to `pick` performs whatever the code you
+hand it performs**. A function writes it exactly when one of its parameters takes `uses *` — the
+compiler insists, in both directions — so the part of a signature after the parameter list always
+tells you what a call can do, without reading the parameters: `uses *` there means *"what your code
+does"*, and no `uses` at all means *"nothing"*.
 
 A code parameter may also list effects after the `*` — `computation uses *, Throw[E]: A`. A listed
 effect is one the **callee takes responsibility for**: the code may use it without the caller
@@ -82,10 +87,10 @@ Every function in the standard library that must not run an argument declares it
 tell you what runs:
 
 ```eliot
-def fold[A](condition: Bool, whenTrue uses *: A, whenFalse uses *: A): A
-def if[T](condition: Bool, value uses *, Abort: T) uses Abort: T
-def else[A](computation uses *, Abort: A, fallback uses *: A): A
-def foreach[A](action uses *: A => Unit, list: List[A]): Unit
+def fold[A](condition: Bool, whenTrue uses *: A, whenFalse uses *: A) uses *: A
+def if[T](condition: Bool, value uses *, Abort: T) uses *, Abort: T
+def else[A](computation uses *, Abort: A, fallback uses *: A) uses *: A
+def foreach[A](action uses *: A => Unit, list: List[A]) uses *: Unit
 ```
 
 - `fold`'s two arms are code, so **only the selected branch runs** — which is what makes
@@ -96,7 +101,7 @@ def foreach[A](action uses *: A => Unit, list: List[A]): Unit
   already declares is not given but **shared**: a nested bare `if` in the value aborts through the
   same `Abort` as the `if` around it, and one `else` outside handles both.
 - `foreach`'s `action` is code that takes an argument: your lambda, run once per element, using
-  your effects. `foreach` declares no `uses`, and a call to it performs exactly what your lambda
+  your effects. `foreach` declares only `uses *`, so a call to it performs exactly what your lambda
   does:
 
 ```eliot
@@ -148,7 +153,7 @@ The two kinds of parameter are treated differently in the callee too:
 ### The dot operator shows both kinds
 
 ```eliot
-def .[A, B](a: A, f uses *: A => B): B = f(a)
+def .[A, B](a: A, f uses *: A => B) uses *: B = f(a)
 ```
 
 Its *function* slot takes code, so `names.foreach(…)` and `lines.foldLeft(…)` carry your effects
@@ -196,8 +201,9 @@ some code performs nothing but what it lists: "this test body does no I/O", say.
 | `uses *, E` | the same, and `E` is the callee's to handle (a discharger) or to declare (like `if`) |
 | `uses E`, no `*` | closed: code that may use `E` and nothing from around it |
 
-One word, no inference, no per-function folklore. And it reads in both directions: **a signature
-with no `uses` anywhere is pure** — it performs nothing, and it runs no code you hand it.
+One word, no inference, no per-function folklore. And it reads in both directions: **a function
+with no `uses` after its parameter list is pure** — it performs nothing, and it runs no code you hand
+it. One with `uses *` there performs what the code you hand it does, plus whatever else it lists.
 
 ## Why the rules are worth it
 

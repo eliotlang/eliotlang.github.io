@@ -84,16 +84,21 @@ recovers the safety of fixed-width types without the fixed-width types.
 combining endpoint by endpoint. From `Intervals.els`:
 
 ```eliot
-def a: Interval[Int] = Interval(0, 1)
-def b: Interval[Int] = Interval(1, 2)
+def a: Interval[Int] = closed(0, 1)
+def b: Interval[Int] = closed(1, 2)
 
 def sum: Interval[Int] = a + b     // [1, 3]
 def diff: Interval[Int] = a - b    // [-2, 0]
 def prod: Interval[Int] = a * b    // [0, 2]
+
+def open: Interval[Int] = atLeast(2)
+def openSum: Interval[Int] = open + b    // [3, ∞)
 ```
 
-You build one with `Interval(start, end)` and read the endpoints back with `.start` and `.end`. The
-same interval arithmetic the compiler uses to track integer ranges is available to you as a plain
-value.
+An endpoint is a `Bound` — `Bounded(v)`, or `Unbounded` — so an interval may be open on either
+side. You build one with `closed(start, end)`, `atLeast(start)`, `atMost(end)`, `whole` (nothing
+bounds it) or `interval(startBound, endBound)`, read the endpoints back with `.start` and `.end`,
+and take a `Bound` apart with `foldBound(ifUnbounded, ifBounded, b)`. The same interval arithmetic
+the compiler uses to track integer ranges is available to you as a plain value.
 
 Next: the rest of the everyday toolkit — `Option`, `Pair`, `Either`, `String`, and `Unit`.

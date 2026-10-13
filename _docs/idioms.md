@@ -32,7 +32,8 @@ newcomers. Keep this open while you write your first programs.
 - Effects go in a `uses` clause beside a plain result type: `uses Console: Unit`, never `IO[Unit]`.
 - A lowercase name in a `case` is a binder, not a constructor; there are no literal patterns.
 - Arguments run where they are written; only a parameter with a `uses` clause (`x uses *: A`) takes
-  code and receives it unrun.
+  code and receives it unrun. A function with such a parameter writes `uses *` in its own clause too
+  (`def map[A, B](f uses *: A => B, list: List[A]) uses *: List[B]`) — the compiler requires it.
 - A function-typed parameter without `uses` takes a pure function: a lambda passed there cannot use
   your effects. Write `f uses *: A => B` when it should.
 - Code parameters are called or passed on, never kept; a `data` field holds a value, so store data

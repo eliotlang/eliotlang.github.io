@@ -16,7 +16,7 @@ Like every operator, `.` is an ordinary definition:
 
 ```eliot
 infix left below apply
-def .[A, B](a: A, f uses *: A => B): B = f(a)
+def .[A, B](a: A, f uses *: A => B) uses *: B = f(a)
 ```
 
 So `a.f` is just `f(a)`. It is **positional, not member-based** — there is no notion of "methods on an

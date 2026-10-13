@@ -145,7 +145,7 @@ Everything above works without knowing how `catch` is written. Here is its signa
 is the key to writing handlers of your own:
 
 ```eliot
-def catch[E, A](computation uses *, Throw[E]: A, onError uses *: E => A): A
+def catch[E, A](computation uses *, Throw[E]: A, onError uses *: E => A) uses *: A
 ```
 
 A `uses` clause on a **parameter** means the parameter takes **code** rather than a value.
@@ -165,7 +165,7 @@ Discharging is not reserved for the standard library. A function whose parameter
 receives that argument unrun and may handle it — which makes it a discharger, in ordinary Eliot:
 
 ```eliot
-def orZero(computation uses *, Throw[String]: Int): Int = computation catch ((err: String) -> 0)
+def orZero(computation uses *, Throw[String]: Int) uses *: Int = computation catch ((err: String) -> 0)
 ```
 
 Read the signature as English: *"give me code that may raise a `String`, and I return an `Int`."*
@@ -187,16 +187,16 @@ it **declares** the effect in its own `uses` clause, which passes it on to *its*
 standard library has both kinds:
 
 ```eliot
-def else[A](computation uses *, Abort: A, fallback uses *: A): A               // handles Abort
-def catch[E, A](computation uses *, Throw[E]: A, onError uses *: E => A): A    // handles Throw[E]
-def if[T](condition: Bool, value uses *, Abort: T) uses Abort: T              // declares Abort
+def else[A](computation uses *, Abort: A, fallback uses *: A) uses *: A               // handles Abort
+def catch[E, A](computation uses *, Throw[E]: A, onError uses *: E => A) uses *: A    // handles Throw[E]
+def if[T](condition: Bool, value uses *, Abort: T) uses *, Abort: T                   // declares Abort
 ```
 
 That is the difference between a bare `if`, whose `Abort` reaches your function, and an `if..else`,
 whose `else` answers it. Doing neither is an error at the place the code runs:
 
 ```eliot
-def launder(body uses *, Console: Unit): Unit = body
+def launder(body uses *, Console: Unit) uses *: Unit = body
 ```
 
 ```text
@@ -216,7 +216,7 @@ the handling catches the code's failure, and the declaration covers what the fun
 This is how a failure message gets rewritten:
 
 ```eliot
-def describedAs(label: String, body uses *, Throw[String]: String) uses Throw[String]: String =
+def describedAs(label: String, body uses *, Throw[String]: String) uses *, Throw[String]: String =
    body catch ((reason: String) -> raise(label ++ ": " ++ reason))
 
 def parseBad uses Throw[String]: String = raise("malformed input")
@@ -232,7 +232,7 @@ written, so the function can neither catch it nor needs to declare it. A helper'
 therefore cannot swallow a failure that was never handed to it:
 
 ```eliot
-def guarded(body uses *: Unit) uses Console: Unit =
+def guarded(body uses *: Unit) uses *, Console: Unit =
    catch[String, Unit](body, e -> printLine("guarded caught " ++ e))
 
 def main uses Console: Unit =

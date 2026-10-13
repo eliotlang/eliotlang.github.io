@@ -114,7 +114,7 @@ Put the `with` in a code parameter's `uses` clause and the fake disappears from 
 altogether — the helper binds whatever code its caller writes in that slot:
 
 ```eliot
-def transcriptOf(program uses *, Console with recordingConsole: Unit): String = runWriterToLog(program)
+def transcriptOf(program uses *, Console with recordingConsole: Unit) uses *: String = runWriterToLog(program)
 
 data TestResult(name: String, failure: Option[String])
 

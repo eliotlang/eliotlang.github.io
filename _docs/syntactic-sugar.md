@@ -22,7 +22,9 @@ once.
   parameter whose value is the *implementation* of that effect, and the result type itself is just
   `A` — which is why it is plain (`Unit`, not `IO[Unit]`). A `uses` clause on a parameter
   additionally makes it a thunk (`value uses *: T` becomes `Unit => T`; `f uses *: A => B` stays
-  `A => B`, marked as code), which is how an argument arrives unrun.
+  `A => B`, marked as code), which is how an argument arrives unrun. The `uses *` a definition then
+  writes in its own clause desugars to nothing at all: the parser checks it is there exactly when a
+  parameter has one, and drops it.
 - **Implementations**: a syntax-directed pass then writes the implementation into every effectful
   call — from the nearest `with`, from the enclosing function's own `uses` clause, or from the code
   parameter that gives it — so an operation like `printLine` becomes a direct call to a known method.

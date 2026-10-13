@@ -132,7 +132,7 @@ error: This value performs the effect 'Console' but does not declare it;
 
 Three consequences are worth internalising:
 
-- **A signature with no `uses` anywhere is genuinely pure.** Not "pure by convention" — it provably
+- **A function with no `uses` before its result type is genuinely pure.** Not "pure by convention" — it provably
   performs no effect, because any effect it performed would have to appear in a clause. And since
   [non-termination]({{ '/docs/totality/' | relative_url }}) is an effect too (`Inf`), such a
   function also provably terminates.

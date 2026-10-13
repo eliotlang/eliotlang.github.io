@@ -29,8 +29,8 @@ the way you'd expect. Both branches must yield the same type.
 Here are the two signatures, straight from the standard library:
 
 ```eliot
-def if[T](condition: Bool, value uses *, Abort: T) uses Abort: T
-def else[A](computation uses *, Abort: A, fallback uses *: A): A
+def if[T](condition: Bool, value uses *, Abort: T) uses *, Abort: T
+def else[A](computation uses *, Abort: A, fallback uses *: A) uses *: A
 ```
 
 Everything about the familiar syntax falls out of ordinary rules:

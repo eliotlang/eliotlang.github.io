@@ -21,7 +21,7 @@ type Option[A]
 
 def none[A]: Option[A]
 def some[A](value: A): Option[A]
-def foldOption[A, B](ifNone uses *: B, ifSome uses *: A => B, o: Option[A]): B
+def foldOption[A, B](ifNone uses *: B, ifSome uses *: A => B, o: Option[A]) uses *: B
 ```
 
 `Option` is an **abstract type**: the standard library says that it exists and what you can do with

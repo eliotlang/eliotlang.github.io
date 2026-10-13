@@ -127,7 +127,7 @@ The same construct can be written in a code parameter's `uses` clause, after the
 Then the function decides the implementation for whatever code its caller writes in that slot:
 
 ```eliot
-def transcriptOf(program uses *, Console with recordingConsole: Unit): String = runWriterToLog(program)
+def transcriptOf(program uses *, Console with recordingConsole: Unit) uses *: String = runWriterToLog(program)
 
 def greetTest: String = transcriptOf(greeting("Bob"))
 ```
@@ -138,7 +138,7 @@ it is how a small test helper hides the fake entirely.
 The same binding can also be written where the code runs, which often reads more naturally:
 
 ```eliot
-def transcriptOf(program uses *, Console: Unit): String = runWriterToLog(program with recordingConsole)
+def transcriptOf(program uses *, Console: Unit) uses *: String = runWriterToLog(program with recordingConsole)
 ```
 
 Both spellings mean *"this argument, run with `recordingConsole` for its `Console`"*. The compiler
@@ -149,7 +149,7 @@ Either way, the effect has to be **listed** on the parameter. An effect the code
 the `*` was bound where the code was written, and no `with` in the callee can reach it:
 
 ```eliot
-def transcriptOf(program uses *: Unit): String = runWriterToLog(program with recordingConsole)
+def transcriptOf(program uses *: Unit) uses *: String = runWriterToLog(program with recordingConsole)
 ```
 
 ```text
