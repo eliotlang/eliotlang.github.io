@@ -189,12 +189,9 @@ def main uses Console, Abort: Unit = printLine(if(false, "x"))
 ```
 
 ```text
-error: The effect 'Abort' is performed here with nothing to discharge it: its implementation
-       needs a frame, and only a discharger installs one.
+error: 'main' uses the effect 'Abort', which the platform has no standard implementation of.
+       Handle it inside 'main': discharge it, or bind an implementation with `with`.
 ```
-
-(A *frame* is what a discharger installs around the code it runs — the place an `abort` exits to,
-or the cell a piece of state lives in.)
 
 This is the payoff that motivates the whole design:
 
