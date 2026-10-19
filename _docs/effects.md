@@ -74,6 +74,20 @@ Three properties of the clause are worth fixing in mind from the start:
 And because an implementation is ordinary Eliot code, you can declare effects of your own with no
 compiler support.
 
+## Why it is called an effect
+
+Mechanically, this is **dependency injection done by the compiler**: a `uses` clause is a list of
+dependencies, checked statically and passed along every call. It is called an *effect* system
+because of one convention every platform keeps: anything that reaches the world — printing, reading
+a file, starting a process, looping forever — is offered to programs **only** as an operation of an
+effect. A program has no other way to call into the platform, so whatever it does besides computing
+comes from an implementation it was handed, and being handed one is written `uses`. That is what
+lets a missing `uses` mean *pure*.
+
+The reverse does not hold: an effect need not touch the world. `Throw`, `Abort` and `State` do
+nothing outside the program, and that is exactly why a function can supply one itself and hand back
+a plain value, as [Where effects end](#where-effects-end) shows.
+
 ## The vocabulary is already in scope
 
 The whole `eliot.effect` package is **ambient**: it is auto-imported into every module, so
