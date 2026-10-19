@@ -18,16 +18,19 @@ once.
 
 ## What this chapter will cover
 
-- **`uses` clauses**: each effect in a definition's `uses E1, E2: A` desugars to one hidden type
-  parameter whose value is the *implementation* of that effect, and the result type itself is just
-  `A` — which is why it is plain (`Unit`, not `IO[Unit]`). A `uses` clause on a parameter
-  additionally makes it a thunk (`value uses *: T` becomes `Unit => T`; `f uses *: A => B` stays
-  `A => B`, marked as code), which is how an argument arrives unrun. The `uses *` a definition then
-  writes in its own clause desugars to nothing at all: the parser checks it is there exactly when a
-  parameter has one, and drops it.
-- **Implementations**: a syntax-directed pass then writes the implementation into every effectful
-  call — from the nearest `with`, from the enclosing function's own `uses` clause, or from the code
-  parameter that gives it — so an operation like `printLine` becomes a direct call to a known method.
+- **`uses` clauses**: each effect in a definition's `uses E1, E2: A` desugars to one hidden
+  parameter holding the *implementation* of that effect (a *handle*), plus a type parameter for its
+  type, and the result type itself is just `A` — which is why it is plain (`Unit`, not `IO[Unit]`).
+  An `effect` desugars to an ability whose every operation takes that handle first, and a named
+  `implement` to a `data` (its parameters are the fields) with that ability's instance. A `uses`
+  clause on a parameter makes it a block (`value uses *: T` becomes `Unit => T`; one listing effects
+  takes a handle per listed effect; `f uses *: A => B` stays `A => B`, marked as code), which is how
+  an argument arrives unrun. The `uses *` a definition then writes in its own clause desugars to
+  nothing at all: the parser checks it is there exactly when a parameter has one, and drops it.
+- **Implementations**: `with` becomes a `let` of the implementation's handle around its subject, and
+  every effectful call gets its handles as ordinary arguments — the type checker picks, for each one,
+  the nearest handle in scope whose type matches — so an operation like `printLine` becomes a direct
+  call to a known method. A handle that holds nothing is erased before code generation.
 - **Blocks**: a `{ … }` block lowers to a tower of immediately-applied lambdas; since evaluation is
   strict, its lines run in the order written.
 - **Direct style**: there is no monadic rewrite. Evaluation is strict and an effect operation is an

@@ -24,14 +24,14 @@ def run uses Dep[Database], Log, Console: Unit = {
 }
 ```
 
-There is no nesting and no transformer order in that signature: each effect is received from the
-caller independently, the block runs its steps in order, and the set is unordered
+There is no nesting and no transformer order in that signature: it is three implementations the
+caller hands over side by side, the block runs its steps in order, and the set is unordered
 (`uses Log, Dep[Database], Console` says the same). The same effect can even appear twice at
 different types — `uses Throw[NetError], Throw[ParseError]`, `uses Dep[Database], Dep[Topic]` — and
-each use finds its own handler.
+each use takes the one whose type it needs.
 
-Discharge still happens one effect at a time, each discharger handling one effect while the rest
-keep floating:
+Discharge still happens one effect at a time, each discharger supplying one effect while the rest
+are passed on:
 
 ```eliot
 def main uses Console, Log: Unit = provide(Database("jdbc://app-db"), run)
@@ -74,14 +74,15 @@ somewhere. `modifyThenAbort` was written once and serves both.
 
 ## Why nesting decides
 
-A discharger installs a handler around its argument for the duration of the call: `runAbort`
-installs the place an `abort` exits to, `runStateToPair` installs the cell the state lives in. An
-`abort` leaves everything installed *inside* its handler and nothing outside it.
+A discharger makes its implementation for the duration of its own call, and hands it to the code
+it runs: `runAbort`'s is an exit point, the place an `abort` lands; `runStateToPair`'s holds the cell
+the state lives in. An `abort` leaves through its exit point, abandoning everything made *inside*
+that call and nothing outside it.
 
-- In `runStateToPair("initial", runAbort(…))` the cell is outside the abort's handler, so the cell —
-  with `"modified"` in it — is still there when the abort lands.
-- In `runAbort(runStateToPair("initial", …))` the cell is inside, so the abort takes it down with
-  everything else.
+- In `runStateToPair("initial", runAbort(…))` the cell was made outside the abort's call, so the
+  cell — with `"modified"` in it — is still there when the abort lands.
+- In `runAbort(runStateToPair("initial", …))` the cell was made inside, so the abort abandons it
+  with everything else.
 
 The same holds for every pair of effects: `Throw` with `State`, `Abort` with `Writer`, and so on.
 There is no table of supported combinations — any nesting of any dischargers compiles, and its

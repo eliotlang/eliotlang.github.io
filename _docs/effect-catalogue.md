@@ -15,31 +15,33 @@ The one-table view, before the details:
 
 | Effect | Operations | Handled by |
 |---|---|---|
-| `Console` | `printLine(s)`, `readLine` | the platform, at `main`; a test's fake via `with` |
-| `Log` | `log(s)` | the platform, at `main`; a test's fake via `with` |
+| `Console` | `printLine(s)`, `readLine` | the platform's `standardConsole`, at `main`; a test's double, via `with` |
+| `Log` | `log(s)` | the platform's `standardLog`, at `main`; a test's double, via `with` |
 | `Abort` | `abort`, `orAbort(option)` | infix `else`; `runAbort` → `Option[A]` |
 | `Throw[E]` | `raise(err)`, `orRaise(either)` | infix `catch (e -> …)`; `runThrow` → `Either[E, A]` |
 | `State[S]` | `state`, `putState(s)`, `updateState(f)` | `runStateToPair` / `runStateToValue` / `runStateToFinalState` |
 | `Writer[W]` | `tell(w)` | `runWriterToPair` / `runWriterToValue` / `runWriterToLog` |
 | `Dep[X]` | `dependency` | `provide(value, computation)` |
-| `Inf` | `forever(step)` | never discharged — run by the platform at `main` |
+| `Inf` | `forever(step)` | never discharged — the platform's `standardInf`, at `main` |
 
 All of them are **ambient**: the whole `eliot.effect` package is auto-imported, operations and
 dischargers included, so none of the code below needs an import line.
 
 ## Two families
 
-Nothing in the language distinguishes them, but the effects fall into two groups, and knowing which
-one you are holding tells you how it ends:
+Every effect is handed down the same way. What differs is where the implementation comes from, and
+that sorts the shipped effects into two groups — nothing in the language distinguishes them, but
+knowing which one you are holding tells you how it ends:
 
 - **Interpretation effects** — `Console` and `Log` here, plus `FileSystem`, `Environment` and
-  `Process` further down, and every effect you declare yourself — talk to the world. They have no
-  pure meaning to discharge into, so they float up to `main`, where the platform's default
-  implementation performs them. A test binds a different implementation with
-  [`with`]({{ '/docs/implementations/' | relative_url }}).
-- **Control effects** — `Abort`, `Throw`, `State`, `Writer`, `Dep` and `Inf` — are about control
-  flow and data. Each has exactly one implementation per platform, so there is nothing to choose;
-  instead you **discharge** them into plain values: an `Option`, an `Either`, a `Pair`.
+  `Process` further down — talk to the world. They have no pure meaning to discharge into, so they
+  are passed up to `main`, where the entry point hands in the platform's **standard implementation**
+  (`standardConsole`, `standardLog`, …). A test hands in a different one with
+  [`with`]({{ '/docs/implementations/' | relative_url }}). `Inf` reaches `main` the same way.
+- **Control effects** — `Abort`, `Throw`, `State`, `Writer` and `Dep` — are about control flow and
+  data. There is no standard one to hand in at `main`; instead a **discharger** makes one around the
+  code it runs — a place for a `raise` to land, a cell for the state — and gives you a plain value
+  back: an `Option`, an `Either`, a `Pair`.
 
 The rest of this chapter takes them one at a time.
 
@@ -52,8 +54,8 @@ def echo uses Console: Unit = printLine(readLine orElse "(no input)")
 `printLine(s)` writes a line; `readLine` yields one as an `Option[String]` — `none` at the end of
 input, which is an ordinary outcome rather than a failure. Supply a default with `orElse`, or turn
 the absence into an `Abort` with `orAbort(readLine)` and handle it with `else`. There is no
-discharger — `Console` is performed by the platform, so it typically floats all the way to `main`.
-In a test, bind a fake console with `with` (see
+discharger — `Console` is performed by the platform, so it is typically passed all the way up to
+`main`. In a test, hand the code a fake console with `with` (see
 [Testing effects]({{ '/docs/testing-effects/' | relative_url }})).
 
 ## `Log` — diagnostics
@@ -169,8 +171,8 @@ data Database(url: String)
 def describe uses Dep[Database], Console: Unit = printLine(dependency.url)
 ```
 
-`dependency` reads the injected value, and it is **type-dispatched**: the type expected at the use
-site decides *which* dependency is read, so one function can pull several
+`dependency` reads the injected value. Which one is decided by **type**: the use takes the nearest
+`Dep` whose type matches what it needs, so one function can pull several
 (`uses Dep[Database], Dep[Topic]`) and each `dependency` finds its own. Discharge with
 `provide(value, computation)` — dependency injection at the discharge site, one `provide` per
 dependency type:
@@ -186,10 +188,10 @@ def serve uses Console, Inf: Unit = forever(printLine(readLine orElse "(no input
 ```
 
 Eliot programs [terminate by default]({{ '/docs/totality/' | relative_url }}); `Inf` is the opt-out.
-`forever(step)` runs its step endlessly, and `Inf` propagates like any other effect, so a caller
-that does not declare `uses Inf` cannot call `serve`. It is the one effect that is *meant* to reach
-`main` undischarged: a server loop or a firmware main loop declares it, and the platform runs it
-forever.
+`forever(step)` runs its step endlessly, and `Inf` is passed on like any other effect, so a caller
+that does not declare `uses Inf` cannot call `serve`. It has no discharger: it is *meant* to reach
+`main`, where the entry point hands in the platform's loop — a server loop or a firmware main loop
+declares it, and runs forever.
 
 ## Beyond the prelude
 
@@ -198,8 +200,8 @@ module, and they follow exactly the same rules:
 
 - **`FileSystem`** (`eliot.file.File`) — whole-file reads and writes, folds over lines, directory
   listings. Every operation may fail, and says so: a filesystem program declares
-  `uses FileSystem, Throw[IoError]`, and `catch` handles the failures while `FileSystem` itself keeps
-  floating to `main`.
+  `uses FileSystem, Throw[IoError]`, and `catch` handles the failures while `FileSystem` itself is
+  passed up to `main`.
 - **`Environment`** (`eliot.system.Environment`) — the program's arguments, environment variables,
   and working directory.
 - **`Process`** (`eliot.system.Process`) — running other programs, and registering this program's
@@ -221,8 +223,12 @@ effect FileSystem {
 }
 ```
 
-A target without a filesystem simply ships no default `FileSystem` implementation, so a program
-using it is refused for that target at the entry point. The layer system *is* the capability model.
+The clause on `readFile` is the call's: whoever calls `readFile` hands it a `Throw[IoError]`, the
+same way it hands it the `FileSystem`.
+
+A target without a filesystem simply ships no `standardFileSystem`, so a program whose `main` uses
+`FileSystem` is refused for that target, at the entry point. The layer system *is* the capability
+model.
 
 ## Your own effects
 
@@ -240,11 +246,27 @@ def handle(request: String) uses Metric, Console: Unit = {
 }
 ```
 
-A new effect has no default implementation until someone writes one — an anonymous
-`implement Metric { … }` in its own module for production, or a named one that a test binds with
-`with`. Both are the subject of
-[Implementations and `with`]({{ '/docs/implementations/' | relative_url }}). Until then, `Metric`
-reaching `main` is an error at the entry point naming it — the honest state of an effect nobody has
-yet said how to run.
+Code using it is written, passed on and checked like code using `Console`. What a new effect does
+not have is a standard implementation, so `main` cannot simply declare it — the entry point would
+have nothing to hand in:
+
+```text
+error: 'main' uses the effect 'Metric', which the platform has no standard implementation of.
+  |  Handle it inside 'main': discharge it, or bind an implementation with `with`.
+```
+
+You write an implementation — always a **named** one — and hand it over with `with`, at the top of
+the program or in a test:
+
+```eliot
+implement printedMetric: Metric {
+   def count(name: String) uses Console: Unit = printLine("count " ++ name)
+}
+
+def main uses Console: Unit = handle("GET /") with printedMetric
+```
+
+Writing implementations, and what `with` does, is the subject of
+[Implementations and `with`]({{ '/docs/implementations/' | relative_url }}).
 
 Next: how effects leave a signature — [Discharging effects]({{ '/docs/discharging-effects/' | relative_url }}).

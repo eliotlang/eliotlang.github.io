@@ -70,10 +70,10 @@ tells you what a call can do, without reading the parameters: `uses *` there mea
 does"*, and no `uses` at all means *"nothing"*.
 
 A code parameter may also list effects after the `*` — `computation uses *, Throw[E]: A`. A listed
-effect is one the **callee takes responsibility for**: the code may use it without the caller
-declaring it, and the callee either *handles* it — runs the code inside a handler of its own, which
-is exactly what a [discharger]({{ '/docs/discharging-effects/' | relative_url }}) is — or *declares*
-it in its own `uses` clause and passes it on to its caller, as `if` does below. You have been using
+effect is one the **callee hands the code**: the code may use it without the caller declaring it,
+and the callee either *handles* it — hands the code an implementation it made, which is exactly what
+a [discharger]({{ '/docs/discharging-effects/' | relative_url }}) is — or *declares* it in its own
+`uses` clause and hands on the one its own caller gave it, as `if` does below. You have been using
 the rule since the last two chapters.
 
 > **A code parameter accepts a plain value too.** A pure expression is code that happens to use
@@ -97,9 +97,9 @@ def foreach[A](action uses *: A => Unit, list: List[A]) uses *: Unit
   `if..else` behave like the conditional you expect, since `if(c, v)` is just `fold(c, v, abort)`.
 - `else`'s `computation` is given `Abort`, which `else` itself does not declare — so `else` handles
   it. Its `fallback` is code too, so it costs nothing when the computation succeeds.
-- `if` lists `Abort` on its `value` *and* declares `uses Abort` itself. An effect the callee
-  already declares is not given but **shared**: a nested bare `if` in the value aborts through the
-  same `Abort` as the `if` around it, and one `else` outside handles both.
+- `if` lists `Abort` on its `value` *and* declares `uses Abort` itself, so it hands `value` the
+  very `Abort` it was handed: a nested bare `if` in the value aborts through the same `Abort` as the
+  `if` around it, and one `else` outside handles both.
 - `foreach`'s `action` is code that takes an argument: your lambda, run once per element, using
   your effects. `foreach` declares only `uses *`, so a call to it performs exactly what your lambda
   does:
@@ -123,8 +123,9 @@ other parameter — `A`, `String`, and a function type like `A => B` too — tak
 value is pure.
 
 For a plain type that is rule 1 again: the argument runs before the call. For a function type it
-means the function you pass must be a **pure function value**. A lambda written there may perform
-and handle effects *inside itself*, but it cannot reach the effects around it:
+means the function you pass must be a **pure function value**. A lambda written there is handed
+nothing: it may perform and discharge effects *inside itself*, but it cannot reach the
+implementations around it:
 
 ```eliot
 def use[A, B](a: A, f: A => B): B = f(a)
@@ -135,6 +136,8 @@ def main uses Console: Unit = use("hi", s -> printLine(s))
 ```text
 error: This uses the effect 'Console' inside a function written where a value is expected, and a
        value may use no effect bound outside it.
+  |  Pass the function to a parameter that takes code (`f uses *: A => B`), or discharge 'Console'
+  |  inside it.
 ```
 
 `use`'s signature has no `uses` anywhere, and that is a promise: calling it performs nothing. If a
@@ -147,8 +150,9 @@ The two kinds of parameter are treated differently in the callee too:
   `def compose[A, B, C](f: B => C, g: A => B): A => C = a -> f(g(a))` is ordinary code.
 - **Code is called or passed on, never kept.** A `uses` parameter can be run, or handed to another
   `uses` parameter, and nothing else. Storing one is an error — *"'f' is code its caller wrote: it
-  can be called or passed on, not kept"* — because code that was given its effects by one call
-  must not run after that call has returned, when the handler it relied on is gone.
+  can be called or passed on, not kept"* — because code holds the implementations it was handed,
+  and some of them exist only until the call that made them returns: a `catch`'s exit point, a
+  `runStateToPair`'s cell. Code kept past that call would run with an implementation that is gone.
 
 ### The dot operator shows both kinds
 
@@ -167,8 +171,7 @@ def bad: Pair[String, String] = swap("second").runStateToPair("first")
 ```
 
 ```text
-error: This value performs the effect 'State' but does not declare it;
-       add it to its `uses` clause.
+error: This value performs the effect 'State' but does not declare it; add it to its `uses` clause.
 ```
 
 `swap("second")` ran in `bad` itself, before `runStateToPair` was called, so the `State` it
@@ -179,7 +182,7 @@ hand a discharger its computation as an argument, where the parameter takes it a
 ## Closing a parameter
 
 Leave the `*` out and the clause is **closed**: `body uses Throw[E]: A` takes code that may use
-`Throw[E]`, which the callee gives it, and **nothing** from around it. Whatever else the argument
+`Throw[E]`, which the callee hands it, and **nothing** from around it. Whatever else the argument
 does, it has to handle itself:
 
 ```eliot
@@ -188,8 +191,9 @@ def runPure[E, A](body uses Throw[E]: A): Either[E, A] = runThrow(body)
 
 `runPure(half(4))` is fine for a `half` that may raise; a `printLine` inside the argument is an
 error at the `printLine` — *"This uses the effect 'Console' inside an argument whose `uses` clause
-is closed"* — even when the caller could print. A closed clause is how a signature promises that
-some code performs nothing but what it lists: "this test body does no I/O", say.
+is closed and does not name it"* — even when the caller could print. A closed clause is how a
+signature promises that some code performs nothing but what it lists: "this test body does no I/O",
+say.
 
 ## The three rules in one table
 
@@ -198,8 +202,8 @@ some code performs nothing but what it lists: "this test body does no I/O", say.
 | no clause (`String`, `A`, `Rect`) | a value: runs here, once, before the call |
 | no clause, a function type (`A => B`) | a pure function value: may use no effect from around it |
 | `uses *` (`x uses *: A`, `f uses *: A => B`) | your code, passed unrun, using your effects; the callee decides when |
-| `uses *, E` | the same, and `E` is the callee's to handle (a discharger) or to declare (like `if`) |
-| `uses E`, no `*` | closed: code that may use `E` and nothing from around it |
+| `uses *, E` | the same, and the callee hands it `E`: one it made (a discharger) or the one it was handed (like `if`) |
+| `uses E`, no `*` | closed: code that may use `E`, which the callee hands it, and nothing from around it |
 
 One word, no inference, no per-function folklore. And it reads in both directions: **a function
 with no `uses` after its parameter list is pure** — it performs nothing, and it runs no code you hand
@@ -224,9 +228,9 @@ an argument).
 
 > **In one sentence.** A parameter without `uses` is a value, computed before the call and pure; a
 > parameter with `uses` is your code, run by the callee on your effects, plus whatever effects it
-> lists, which the callee handles or declares; and leaving out the `*` closes the code to everything
-> but what the clause lists.
+> lists, which the callee hands it; and leaving out the `*` closes the code to everything but what
+> the clause lists.
 {: .tip}
 
-Next: the model beneath the `uses` clauses —
+Next: writing implementations and handing them over —
 [Implementations and `with`]({{ '/docs/implementations/' | relative_url }}).

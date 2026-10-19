@@ -6,13 +6,13 @@ part: Effects
 summary: Running effectful business logic with no I/O — discharging control effects into plain values, faking Console or your own effects with a named implementation and with, and building a small test framework from the same pieces.
 ---
 
-Code that declares its effects in a `uses` clause never says how they are performed — whoever runs
-it decides. In production that is the platform, at `main`. In a test it is you. That is what makes
-effects testable, and it is where the effect system pays for itself.
+Code that declares its effects in a `uses` clause never says which implementation it uses — its
+caller hands it one. In production that is the platform, at `main`. In a test it is you. That is
+what makes effects testable, and it is where the effect system pays for itself.
 {: .docs-lead}
 
 There are two kinds of effect, and two matching ways to test. Control effects are *discharged* into
-plain values; interpretation effects are given a *fake implementation*. Neither touches the code
+plain values; interpretation effects are handed a *fake implementation*. Neither touches the code
 under test.
 
 ## Control effects: discharge, then assert on data
@@ -47,18 +47,18 @@ signature `uses State[String]: String` was already the testable form. And becaus
 returns an ordinary value, a test like this can be written anywhere — in a pure function, or in the
 middle of an effectful one.
 
-## Interpretation effects: bind a fake with `with`
+## Interpretation effects: hand over a fake with `with`
 
 `Console`, `Log`, `FileSystem` and your own effects have no pure meaning to discharge into; the
-platform performs them. To test code that uses them, give the code a different implementation. The
+platform performs them. To test code that uses them, hand the code a different implementation. The
 production code stays exactly as it is:
 
 ```eliot
 def greeting(name: String) uses Console: Unit = printLine("Hello, " ++ name ++ "!")
 ```
 
-The test declares a **named implementation** — a fake — and binds it with
-[`with`]({{ '/docs/implementations/' | relative_url }}#choosing-a-different-implementation-with):
+The test declares an **implementation** — a fake — and hands it over with
+[`with`]({{ '/docs/implementations/' | relative_url }}#handing-one-over-with):
 
 ```eliot
 implement recordingConsole: Console {
@@ -75,18 +75,19 @@ into the plain `String` a test asserts on. Nothing was printed, nothing was mock
 `greeting` never learned that a test exists.
 
 The fake is **one declaration**. It needs no type of its own, no registration, and no place in the
-effect's module: a named implementation is never searched for, so it cannot clash with the
-platform's default. And it **cannot cheat** — user code cannot declare platform natives, so a fake
-reaches the outside world only through effects its own clauses declare, which are checked like any
-others.
+effect's module: an implementation is never searched for, so it cannot clash with the platform's
+`standardConsole`. Its `Writer` is taken where the `with` is written — inside `runWriterToLog` — so
+it never shows up in `greeting`'s clause. And it **cannot cheat**: user code cannot declare platform
+natives, so a fake reaches the outside world only through effects its own clauses declare, which are
+checked like any others.
 
 Interpretation is **per effect**: `program with fakeConsole with fakeFileSystem` replaces two
-effects and leaves everything else at its default.
+effects and leaves every other one as the caller had it.
 
 ### Your own effects
 
-An effect your application defines is tested the same way. It ships no default at all until you
-write one, so the test's implementation is simply the first:
+An effect your application defines is tested the same way. A fake that needs configuring takes
+parameters, which the `with` supplies:
 
 ```eliot
 effect Terminal {
@@ -99,22 +100,22 @@ def greet uses Terminal: Unit = {
    write("Hello, " ++ name ++ "!")
 }
 
-implement session: Terminal {
+implement scripted(answer: String): Terminal {
    def write(line: String) uses Writer[String]: Unit = tell(line ++ ";")
-   def read: String = "Bob"
+   def read: String = answer
 }
 
-def greetTranscript: String = runWriterToLog(greet with session)
-// "Hello, Bob!;"
+def greetsBob: String = runWriterToLog(greet with scripted("Bob"))     // "Hello, Bob!;"
+def greetsAda: String = runWriterToLog(greet with scripted("Ada"))     // "Hello, Ada!;"
 ```
 
 ## A tiny test framework
 
-Put the `with` in a code parameter's `uses` clause and the fake disappears from the tests
-altogether — the helper binds whatever code its caller writes in that slot:
+Write the `with` inside a helper, around its run of a code parameter, and the fake disappears from
+the tests altogether — the helper hands it to whatever code its caller writes in that slot:
 
 ```eliot
-def transcriptOf(program uses *, Console with recordingConsole: Unit) uses *: String = runWriterToLog(program)
+def transcriptOf(program uses *, Console: Unit) uses *: String = runWriterToLog(program with recordingConsole)
 
 data TestResult(name: String, failure: Option[String])
 
@@ -141,7 +142,7 @@ def assertTrue(condition: Bool, reason: String) uses Throw[AssertionError]: Unit
    if(condition, unit) else raise(AssertionError(reason))
 
 def test(name: String, body uses Throw[AssertionError]: Unit): TestResult =
-   TestResult(name, runThrow[AssertionError, Unit](body).foldEither(err -> some(message(err)), _ -> none))
+   TestResult(name, runThrow(body).foldEither(err -> some(message(err)), _ -> none))
 
 def alwaysFails: TestResult = test("always fails", assertTrue(false, "nope"))
 ```
@@ -159,9 +160,10 @@ Notice that `body`'s clause has no `*`. That makes it
 assert and nothing else — it cannot reach the console, the file system or anything else around it,
 so a test written with `test` provably performs no I/O. A body that tries is rejected at the call
 that does it. A framework that *wants* its tests to use the effects around them opens the clause
-instead, `body uses *, Throw[AssertionError]: Unit`; the `eliot.test` framework's `in` is written
-exactly that way, and its `mocked` binds a whole set of doubles on one slot, the way `transcriptOf`
-binds one.
+instead, `body uses *, Throw[AssertionError]: Unit`. The `eliot.test` framework's `in` is written
+exactly that way, and its `mocked` is `transcriptOf` grown up: its slot lists every effect it fakes,
+and it runs the body `with mockConsole with mockLog with mockFileSystem …`, so a case written
+`"greet" should "greet the name it reads" in mocked { … }` needs no fixture at all.
 
 ## Structuring code for tests
 
@@ -170,9 +172,9 @@ whose effects a test can discharge or fake, and keep the edges thin. Because eve
 uses is in its `uses` clause, you can see from a signature exactly what a test has to supply — and
 the compiler will tell you if you missed one.
 
-> **In one sentence.** Discharge a control effect and assert on the value; bind a named
-> implementation with `with` for an interpretation effect and assert on what it recorded; the code
-> under test changes in neither case.
+> **In one sentence.** Discharge a control effect and assert on the value; hand an interpretation
+> effect a fake implementation with `with` and assert on what it recorded; the code under test
+> changes in neither case.
 {: .tip}
 
 Next part: programming in the large, starting with
