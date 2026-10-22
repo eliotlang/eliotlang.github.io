@@ -1,7 +1,7 @@
 ---
 title: The effect catalogue
 nav_title: Effect catalogue
-order: 17
+order: 21
 part: Effects
 summary: The shipped effects — Console, Log, Abort, Throw, State, Writer, Dep, and Inf — with their operations and how each is handled, the effects beyond the prelude, and what declaring your own looks like.
 ---

@@ -1,7 +1,7 @@
 ---
 title: Idioms and gotchas
 nav_title: Idioms & gotchas
-order: 26
+order: 30
 part: In the large
 stub: true
 summary: A cheatsheet of idiomatic Eliot style and the sharp edges to watch for, gathered in one place.

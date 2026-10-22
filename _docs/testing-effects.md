@@ -1,7 +1,7 @@
 ---
 title: Testing effects
 nav_title: Testing effects
-order: 22
+order: 26
 part: Effects
 summary: Running effectful business logic with no I/O — discharging control effects into plain values, faking Console or your own effects with a named implementation and with, and building a small test framework from the same pieces.
 ---

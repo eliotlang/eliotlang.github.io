@@ -1,7 +1,7 @@
 ---
 title: "Values and code: when effects run"
 nav_title: Values & code
-order: 20
+order: 24
 part: Effects
 summary: Effects run where they are written; a parameter that takes code instead of a value says so with uses; a parameter without uses is a value, pure even when it is a function; and a closed clause says what code may not do.
 ---

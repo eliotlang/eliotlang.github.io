@@ -1,7 +1,7 @@
 ---
 title: Effects in direct style
 nav_title: Effects, direct style
-order: 16
+order: 20
 part: Effects
 summary: What an effect is, how a uses clause says what a function's caller must hand it, why effectful code still reads like ordinary straight-line code, and where effects begin and end.
 ---

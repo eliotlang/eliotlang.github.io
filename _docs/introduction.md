@@ -27,7 +27,8 @@ up front — each one gets its own chapter later.
   you write stays identical across every device.
 
 - **One integer type, with ranges.** There is no `Int8`/`Int16`/`Int32` zoo. There is just
-  `Int`, and a value's *range* rides along as meta-information the compiler tracks. Arithmetic
+  `Int`, and a value's *range* rides along as
+  [meta-information]({{ '/docs/meta-information/' | relative_url }}) the compiler tracks. Arithmetic
   grows the range instead of overflowing, and a `where` precondition can *prove* a value fits a
   byte — checked at every call site, at zero runtime cost.
 

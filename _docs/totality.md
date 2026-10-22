@@ -1,7 +1,7 @@
 ---
 title: Total by default
 nav_title: Total by default
-order: 15
+order: 14
 part: Generics & types
 stub: true
 summary: Why user code cannot recurse or loop, and how to express repetition through eliminators and forever.

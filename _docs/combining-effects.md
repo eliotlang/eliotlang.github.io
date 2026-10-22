@@ -1,7 +1,7 @@
 ---
 title: Combining and ordering effects
 nav_title: Combining effects
-order: 19
+order: 23
 part: Effects
 summary: How several effects combine in one uses clause, and how the order you discharge them in decides how they interact.
 ---

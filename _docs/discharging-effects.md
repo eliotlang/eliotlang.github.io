@@ -1,7 +1,7 @@
 ---
 title: Discharging effects
 nav_title: Discharging effects
-order: 18
+order: 22
 part: Effects
 summary: Turning effectful code into plain values — catch, else, provide and the run… family, the pure boundary, the one rule about where to write the computation, and how a discharger of your own is declared.
 ---

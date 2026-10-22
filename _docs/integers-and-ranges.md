@@ -20,7 +20,8 @@ type Int {range: Interval[BigInteger]}
 ```
 
 `Int` is a single type, and every `Int` value carries a `range` — the interval of values it might
-hold — as *meta-information the compiler tracks*, not as a type parameter you write. The range lives
+hold — as [*meta-information*]({{ '/docs/meta-information/' | relative_url }}) the compiler tracks,
+not as a type parameter you write. The range lives
 in the compiler's refinement channel and costs **nothing at runtime**; it's a fact the compiler
 knows, not a tag the program carries around.
 
@@ -73,10 +74,11 @@ value's range as an `Interval`:
 range(count)      // the Interval the compiler tracks for `count`
 ```
 
-This becomes powerful in [Preconditions & guarded returns]({{ '/docs/preconditions/' | relative_url }}),
-where a `where` clause can *require* — and the compiler can *prove* — that a value's range fits some
+This becomes powerful in [Preconditions]({{ '/docs/preconditions/' | relative_url }}),
+where a function can *require* — and the compiler can *prove* — that a value's range fits some
 bound, like a single byte, checked at every call site with zero runtime cost. That's how Eliot
-recovers the safety of fixed-width types without the fixed-width types.
+recovers the safety of fixed-width types without the fixed-width types. The whole
+[Meta-information]({{ '/docs/meta-information/' | relative_url }}) part of this guide is about it.
 
 ## Intervals as ordinary values
 

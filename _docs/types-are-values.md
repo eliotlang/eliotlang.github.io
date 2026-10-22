@@ -24,6 +24,8 @@ idea replaces a whole category of special-purpose language machinery.
   (`Box[I.inc]`).
 - **Matching on a type's structure** with `match` and `[…]` patterns:
   `case Person[name] -> name`.
+- **Guarded returns**: rejecting a bad *type* instantiation inline, with a return type
+  `if(cond, T)`, so misuse fails the build instead of being documented as "don't call this with…".
 - How this underpins generics, `where` preconditions, and the whole approach of putting proofs in the
   compiler.
 
