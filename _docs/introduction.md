@@ -30,7 +30,8 @@ up front — each one gets its own chapter later.
   `Int`, and a value's *range* rides along as
   [meta-information]({{ '/docs/meta-information/' | relative_url }}) the compiler tracks. Arithmetic
   grows the range instead of overflowing, and a `where` precondition can *prove* a value fits a
-  byte — checked at every call site, at zero runtime cost.
+  byte — checked at every call site, at zero runtime cost. A program can declare kinds of
+  meta-information of its own, too.
 
 - **Effects live in the signature.** What a function may do — print, fail, read state, use a
   dependency — is an unordered set written in its signature: `uses Console, State[String], Throw[E]`.

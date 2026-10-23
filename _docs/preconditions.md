@@ -75,8 +75,9 @@ How to read and write one:
   `def log(level: Int) where isByte(range(level)) uses Console: Unit`. That keeps the result side,
   `uses Console: Unit`, together.
 - **Inside it, a parameter stands for its meta.** `range(a)` is `a`'s range, an
-  `Interval[BigInteger]`, and `size(s)` is a string's size. Intervals add and subtract, so
-  `range(a) + range(b)` is the range of the sum.
+  `Interval[BigInteger]`, and `length(s)` is a string's length. Intervals add and subtract, so
+  `range(a) + range(b)` is the range of the sum. In a `where`, `length(s)` is the slot, an
+  interval, not the function that counts the characters at runtime.
 - **It is ordinary Eliot code**, which the compiler runs at compile time. It can call your own
   functions, like `isByte` above, and combine conditions with `&&`:
 
@@ -95,6 +96,30 @@ How to read and write one:
 **Which one to use?** A brace when the demand is a bound on one parameter: it reads as part of the
 parameter, and callers see the contract right in the signature. A `where` when the demand relates
 several parameters, or is not an interval.
+
+## Demands on a list
+
+A list's meta has two slots, and a `where` can read both. `size(list)` is how many items it has,
+and `item(list)` is what is known about every item:
+
+```eliot
+import eliot.collection.List
+import eliot.lang.Reach
+
+def isByte(i: Interval[BigInteger]): Bool = rangeWithin[0, 255](i)
+def fewEnough(i: Interval[BigInteger]): Bool = rangeWithin[1, 64](i)
+
+def playAll(duties: List[Int]) where fewEnough(size(duties)) && duties.item.forAll(m -> isByte(m.range)) uses Console: Unit =
+   duties.foreach(d -> printLine("duty " ++ show(d)))
+```
+
+`playAll(append(append(empty, 20), 200))` compiles. `playAll(append(empty, 300))` does not, because
+an item does not fit a byte, and `playAll(empty)` does not, because the list has no item.
+
+The items are read with **`forAll`**, from `eliot.lang.Reach`: *every item satisfies this*. It holds
+of a list that has no item at all, the way "every item is a byte" is true of an empty list. That is
+why `playAll` demands the size separately. Inside the lambda, `m` is one item's meta, so `m.range` is
+its range.
 
 ## Checked where it is used
 
@@ -139,7 +164,9 @@ stopped following the value before it reached the call. The
 [previous chapter]({{ '/docs/following-values/' | relative_url }}#where-the-compiler-stops) lists
 where that happens. The usual fix is to keep the value flowing as a plain `Int` from where it is
 made to where it is demanded, or to keep it in a field that states its range
-([next chapter]({{ '/docs/refined-types/' | relative_url }})).
+([Refined types of your own]({{ '/docs/refined-types/' | relative_url }})). When the value comes
+from input, check it in a function that states what it returns
+([next chapter]({{ '/docs/refining/' | relative_url }})).
 
 **"…cannot be passed as a value"**: a function with a brace or a `where` can only be called with all
 its arguments.
@@ -156,23 +183,17 @@ parameter, so the demand inside fails as *cannot prove*. Call it directly.
 
 ## Where a brace may go
 
-A brace states a meta exactly where the compiler cannot see where a value comes from, and whoever
-supplies the value proves it:
+A brace in a signature means one of two things, depending on where it stands. After something a
+function *receives*, it is a **demand**, and whoever supplies the value proves it. After what a
+function *returns*, it is a **statement**, and the compiler takes it as written:
 
-- **after a value parameter's type**: every caller proves it (this chapter);
-- **after a `data` field's type**: every construction proves it
-  ([next chapter]({{ '/docs/refined-types/' | relative_url }}));
-- **on a platform primitive's result**: the platform states it, since the primitive has no Eliot
-  body ([Under the hood]({{ '/docs/meta-domains/' | relative_url }})).
+| Where | Means | Who answers for it |
+|---|---|---|
+| after a value parameter's type | a demand | every caller proves it (this chapter) |
+| after a `data` field's type | a demand | every construction proves it ([Refined types of your own]({{ '/docs/refined-types/' | relative_url }})) |
+| after a function's result type | a statement | you do: nothing checks it ([Refining a result]({{ '/docs/refining/' | relative_url }})) |
+| after a constructor's fields, on a `data` type with slots | a statement | you do ([Meta-information of your own]({{ '/docs/custom-metas/' | relative_url }})) |
 
-A brace does not go on the **result** of a function with a body:
+A brace does not go on a `uses` parameter: that argument is code the caller wrote, not a value.
 
-```text
-error: This value has a body, so its meta-information is derived from that body, but it also states a meta transfer; remove the { ... } return brace, which only a native value may carry.
-```
-
-The compiler sees the body, so it derives the result's meta from it. A stated result could only
-repeat what it derives, or contradict it. A brace does not go on a `uses` parameter either: that
-argument is code the caller wrote, not a value.
-
-Next: [Refined types of your own]({{ '/docs/refined-types/' | relative_url }}).
+Next: [Refining a result]({{ '/docs/refining/' | relative_url }}).

@@ -1,7 +1,7 @@
 ---
 title: Implementations and with
 nav_title: Implementations & with
-order: 25
+order: 27
 part: Effects
 summary: Writing an effect's implementation, handing it over with with, how the compiler picks the implementation each operation uses, implementations with parameters and effects of their own, what a data field holds instead of a computation, and how to name a set of effects.
 ---

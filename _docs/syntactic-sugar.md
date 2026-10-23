@@ -1,7 +1,7 @@
 ---
 title: Syntactic sugar, end to end
 nav_title: Syntactic sugar
-order: 29
+order: 31
 part: In the large
 stub: true
 summary: The desugarings that make Eliot read the way it does — uses clauses, blocks, the dot, if..else, lambdas, and integer literals.

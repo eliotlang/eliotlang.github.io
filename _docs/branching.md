@@ -98,6 +98,9 @@ A bare `if` with **no** `else` doesn't discharge the `Abort` — it floats up to
 def requirePositive(n: Int) uses Abort: Int = if(n > 0) n
 ```
 
+(The compiler does not learn from the condition that the result is positive; a brace on the result
+can say so, as [Refining a result]({{ '/docs/refining/' | relative_url }}) shows.)
+
 Most of the time, though, you write the `else`.
 
 ## Boolean operators

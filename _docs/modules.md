@@ -1,7 +1,7 @@
 ---
 title: Modules and imports
 nav_title: Modules & imports
-order: 27
+order: 29
 part: In the large
 stub: true
 summary: One file is one module, how names resolve per file, and the auto-imported prelude and effect vocabulary.
