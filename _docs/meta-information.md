@@ -12,8 +12,8 @@ string is at most 16 characters long. Eliot works it out for you, checks it wher
 say more where you know more, and none of it exists at runtime.
 {: .docs-lead}
 
-This part of the guide introduces an idea most programmers have not met in a language before, so it
-starts slowly. This chapter is the *why*: the problem meta-information solves, what it is, and how to
+This part of the guide introduces an idea most programmers have not met in a language before, so
+this chapter starts with the *why*: the problem meta-information solves, what it is, and how to
 think about it. The chapters after it show what the compiler follows, how to demand a fact, how to
 state a fact the compiler cannot work out, how to build refined types and kinds of meta-information
 of your own, and finally what is under the hood.
