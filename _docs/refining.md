@@ -92,11 +92,10 @@ Only the result's meta is replaced. Everything else about the call is still foll
 body: what it writes into a `State`, what it raises, and whether it can return at all. A function
 that never returns still never returns, whatever its brace says.
 
-A brace states the meta of a result whose type declares slots: an `Int`, a `String`, a `List`. A
-brace on a function that returns a function, or a type with nothing to state, is an error. So,
-today, is one on a function returning a `data` type: refining the slots of a `data` type of your own
-([Meta-information of your own]({{ '/docs/custom-metas/' | relative_url }})) from a function's result
-is planned but not in the compiler yet.
+A brace states the meta of a result whose type declares slots: an `Int`, a `String`, a `List`, or a
+`data` type of your own that declares slots
+([Meta-information of your own]({{ '/docs/custom-metas/' | relative_url }}#refining-a-slot)). A brace
+on a function that returns a function, or a type with nothing to state, is an error.
 
 ## The compiler trusts you
 

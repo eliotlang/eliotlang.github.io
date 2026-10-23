@@ -183,13 +183,29 @@ There is no default, because there is no meta nobody accounted for.
 > `eliot.collection.List::append(…)`.
 {: .note}
 
-## What is not there yet
+## Refining a slot
 
-A function cannot yet refine a `data` type's slot from its result: a brace on a function returning a
-`Temperature` is refused today. The plan is that it will work as
-[refining an `Int`]({{ '/docs/refining/' | relative_url }}) does, so that a function that checks a
-temperature can state `{AboveFreezing}` about the one it returns. Until then, a slot is what the
-constructors state.
+A constructor states what it can see: the fields it is built from. A function that checks a value
+knows more, and can say so with a brace after its result type, exactly as
+[refining an `Int`]({{ '/docs/refining/' | relative_url }}) does:
+
+```eliot
+def checked(t: Temperature) uses Abort: Temperature {AboveFreezing} = if(t.celsius > 0) t
+```
+
+A `Temperature` built from a number read at runtime might be freezing, as far as the compiler can
+tell. One that went through `checked` is known to be `AboveFreezing`, so this compiles:
+
+```eliot
+def main uses Console: Unit = {
+   val read = parseInt(readLine orElse "") else 0
+   startPump(checked(Temperature(read)) else Temperature(5))
+}
+```
+
+The brace lists the type's slots, in order, and nothing else. Everything else the compiler knows
+about the value is still what it followed: a `match` on the result still hands its arm the
+`celsius` with the range it was built with. And as with every result brace, the compiler trusts it.
 
 Next: [Under the hood]({{ '/docs/meta-domains/' | relative_url }}), where all of these pieces come
 from.
